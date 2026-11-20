@@ -1,9 +1,8 @@
 /* Supabase · configuração pública do front-end.
    A chave "publishable" é feita para ficar no navegador; a segurança vem das
    políticas RLS do banco (ver docs/supabase/schema.sql).
-   CONFIRMAR: a URL abaixo veio do Projeto 01. Se o banco novo for outro projeto,
-   troque pela URL em Supabase › Project Settings › API. */
-window.SUPABASE_URL = "https://sskzuaftgqqhhpctqzid.supabase.co";
+   Projeto: rjqzlqtgkuvyxrotejrs (mesmo do MCP em .mcp.json; chave validada). */
+window.SUPABASE_URL = "https://rjqzlqtgkuvyxrotejrs.supabase.co";
 window.SUPABASE_KEY = "sb_publishable_iktcQtEK7g78zerhDwiGEQ_3R9zfkb0";
 
 window.JP_DB = (function () {

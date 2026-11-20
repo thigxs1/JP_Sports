@@ -25,9 +25,7 @@ window.SUPABASE_URL = "https://<ref-do-projeto>.supabase.co"; // Project Setting
 window.SUPABASE_KEY = "sb_publishable_...";                  // Project Settings › API Keys › Publishable key
 ```
 
-> **Pendente:** a URL atual veio do Projeto 01 e **não** pertence ao projeto da chave
-> `sb_publishable_iktc...` (o Supabase responde `401 Invalid API key`). Troque a URL pela
-> do projeto novo antes do deploy.
+> Projeto atual: `rjqzlqtgkuvyxrotejrs` (URL e chave publishable validadas).
 
 Use apenas a chave **publishable**. Nunca coloque a `service_role` / secret key no front-end.
 
