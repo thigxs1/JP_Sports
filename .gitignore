@@ -1,0 +1,34 @@
+# --- Raiz: só entra o que é do projeto JP Sport ---
+# Scripts e arquivos de pesquisa/coleta do site de referência (conteúdo de terceiros) ficam fora do repositório.
+/*
+!/app/
+!/scripts/
+!/tests/
+!/docs/
+!/serve.js
+!/package.json
+!/README.md
+!/.gitignore
+!/.gitattributes
+!/.claude/
+/.claude/*
+!/.claude/launch.json
+
+# Metadados do site de referência, não usados pelo app
+app/models/camisa_info.json
+app/models/champions_info.json
+app/models/modelo399_info.json
+
+# --- Gerados (rodar: node scripts/build_embedded_assets.js) ---
+app/js/embedded_assets.js
+
+# --- Backups e temporários do Blender ---
+*.blend1
+*_backup.*
+# malha base lida pelo pipeline do Blender (scripts/blender_refine_kit.py)
+!app/models/kit_completo_v1_backup.obj
+__pycache__/
+
+# --- Sistema ---
+Thumbs.db
+.DS_Store

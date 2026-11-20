@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Monte seu uniforme em 3D · JP Sport</title>
+  <link rel="icon" href="assets/logo-jp-provisorio.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="assets/jp-sport.css">
+  <link rel="stylesheet" href="css/simulador-jp.css">
+  
+  <!-- 3D Engines & Controls -->
+  <script src="js/three.min.js"></script>
+  <script src="js/OBJLoader.js"></script>
+  <script src="js/OrbitControls.js"></script>
+  <!-- Pacote embutido (6,7 MB) só quando aberto direto do disco (file://).
+       Via HTTP o app baixa os arquivos individuais (OBJ/PNG/SVG), que o servidor pode comprimir/cachear. -->
+  <script>
+    if (location.protocol === "file:") document.write('<script src="js/embedded_assets.js"><\/script>');
+  </script>
+</head>
+<body class="jp sim-jp">
+  <div class="cortina"><img class="simbolo" src="assets/logo-jp-provisorio.svg" alt=""></div>
+  <div id="app">
+    <!-- Top Header -->
+    <header class="main-header">
+      <div class="header-left">
+        <a href="index.html" class="assinatura" aria-label="JP Sport · início">
+          <img class="simbolo" src="assets/logo-jp-provisorio.svg" alt="">
+          <span><span class="nome">JP SPORT</span><span class="mae">Simulador 3D</span></span>
+        </a>
+      </div>
+
+      <!-- Modalidades -->
+      <nav class="kit-category-nav">
+        <button class="cat-tab active" data-kit-mode="futebol"><small>01</small>Futebol</button>
+        <button class="cat-tab" data-kit-mode="basquete"><small>02</small>Basquete</button>
+        <button class="cat-tab" data-kit-mode="volei"><small>03</small>Vôlei</button>
+      </nav>
+      
+      <div class="header-right">
+        <button class="btn-head" id="btnToggleStudioBg" title="Alternar Fundo Claro/Escuro">
+          <i class="material-icons">wb_sunny</i> <span id="bgStateText">Estúdio Claro</span>
+        </button>
+        <button class="btn-head" id="btnResetView" title="Resetar Câmera">
+          <i class="material-icons">filter_center_focus</i> Visão Padrão
+        </button>
+        <button class="btn-head" id="btnToggleRotate" title="Auto Rotação">
+          <i class="material-icons">360</i> <span id="rotateStateText">Auto Giro: OFF</span>
+        </button>
+        <button class="btn btn-acao" id="btnBudget" title="Pedir orçamento" data-magnetico>
+          Pedir orçamento <span class="seta">→</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Workspace -->
+    <div class="workspace">
+      <!-- Left Panel: 3D Canvas & Camera Overlay -->
+      <div class="viewer-container studio-light" id="viewerContainer">
+        <!-- 3D WebGL Canvas Injection -->
+        <canvas id="webglCanvas"></canvas>
+
+        <!-- Side Navigation Arrows (Reference visual style) -->
+        <button class="studio-nav-arrow prev" id="btnPrevPreset" title="Preset Anterior">&#10094;</button>
+        <button class="studio-nav-arrow next" id="btnNextPreset" title="Próximo Preset">&#10095;</button>
+
+        <!-- Loading Spinner -->
+        <div class="loading-overlay" id="loadingOverlay">
+          <div class="spinner"></div>
+          <p id="loadingText">Carregando Kit Esportivo 3D Completo...</p>
+        </div>
+
+        <!-- On-screen Floating Controls -->
+        <div class="floating-controls">
+          <button class="float-btn" id="btnZoomIn" title="Aproximar"><i class="material-icons">add</i></button>
+          <button class="float-btn" id="btnZoomOut" title="Afastar"><i class="material-icons">remove</i></button>
+          <div class="divider"></div>
+          <button class="float-btn active" id="btnFocusKit" title="Focar Kit Completo">Kit</button>
+          <button class="float-btn" id="btnFocusShirt" title="Focar Camisa & Gola">Camisa</button>
+          <button class="float-btn" id="btnFocusShorts" title="Focar Calção & Meião">Calção</button>
+          <div class="divider"></div>
+          <button class="float-btn" id="btnViewFront" title="Frente">Frente</button>
+          <button class="float-btn" id="btnViewBack" title="Costas">Costas</button>
+          <button class="float-btn" id="btnViewRight" title="Lado Dir.">Dir</button>
+          <button class="float-btn" id="btnViewLeft" title="Lado Esq.">Esq</button>
+        </div>
+
+        <!-- 3D Environment Info Pill -->
+        <div class="product-badge">
+          <div class="badge-rotulo">Coleção 26 · Tecido dry</div>
+          <div class="badge-title" id="badgeTitulo">Futebol · Camisa Dry Pro</div>
+          <div class="badge-sub">Gola: <strong id="badgeGolaText">Gola V Esportiva</strong></div>
+        </div>
+      </div>
+
+      <!-- Right Panel: Customization Studio -->
+      <aside class="sidebar-customizer">
+        <!-- Tab Navigation -->
+        <div class="tabs-header">
+          <button class="tab-btn active" data-tab="cores">
+            <i class="material-icons">palette</i> Cores do Kit
+          </button>
+          <button class="tab-btn" data-tab="estampas">
+            <i class="material-icons">checkroom</i> Golas & Estampa
+          </button>
+          <button class="tab-btn" data-tab="personalizacao">
+            <i class="material-icons">shield</i> Escudo & Nomes
+          </button>
+          <button class="tab-btn" data-tab="resumo">
+            <i class="material-icons">shopping_bag</i> Resumo
+          </button>
+        </div>
+
+        <!-- Tab Content -->
+        <div class="tab-content-wrapper">
+          <!-- TAB 1: CORES -->
+          <section class="tab-pane active" id="tab-cores">
+            <div class="pane-header">
+              <h2>Cores do Fardamento</h2>
+              <p>Personalize a camisa, gola, punhos, calção e meião.</p>
+            </div>
+
+            <!-- Color Layer Target Selector -->
+            <div class="part-selector-group">
+              <label>PEÇA / PARTE DO UNIFORME:</label>
+              <div class="part-buttons">
+                <button class="part-btn active" data-tag="cor1">Camisa (Base)</button>
+                <button class="part-btn" data-tag="cor2">Estampa / Rajado</button>
+                <button class="part-btn" data-tag="cor3">Gola & Punhos</button>
+                <button class="part-btn" data-tag="corCalcao">Calção (Shorts)</button>
+                <button class="part-btn" data-tag="corMeiao">Meião</button>
+                <button class="part-btn" data-tag="cor4">Marca JP</button>
+                <button class="part-btn" data-tag="cor5">Número & Nome</button>
+              </div>
+            </div>
+
+            <!-- Active Selection Preview -->
+            <div class="current-selection-banner">
+              <span class="active-part-name" id="currentPartName">Camisa (Base)</span>:
+              <span class="color-badge" id="currentColorPreview" style="background-color: #005913;"></span>
+              <strong id="currentColorName">Verde</strong>
+            </div>
+
+            <!-- Color Grid Swatches -->
+            <div class="swatches-grid" id="swatchesGrid">
+              <!-- Dynamically populated from camisa_info.json -->
+            </div>
+          </section>
+
+          <!-- TAB 2: ESTAMPAS E GOLAS -->
+          <section class="tab-pane" id="tab-estampas">
+            <div class="pane-header">
+              <h2>Modelagem de Gola & Estampa</h2>
+              <p>Alterne a geometria 3D da gola gerada no Blender e a estampa.</p>
+            </div>
+
+            <div class="option-box" style="margin-bottom: 20px;">
+              <label style="font-size:0.8rem; font-weight:700; color:var(--primary);">MODELO DE GOLA 3D (BLENDER):</label>
+              <select id="selectGola" class="custom-select">
+                <option value="v" selected>Gola V Esportiva Especial (Padrão)</option>
+                <option value="redonda">Gola Careca Redonda Tradicional</option>
+                <option value="polo">Gola Polo com Peitilho Esportivo</option>
+              </select>
+            </div>
+
+            <div class="patterns-grid">
+              <div class="pattern-card active" data-pattern="rajado">
+                <div class="pattern-preview rajado-pattern"></div>
+                <span>Rajado</span>
+              </div>
+              <div class="pattern-card" data-pattern="colors">
+                <div class="pattern-preview geometric-pattern"></div>
+                <span>Linhas Angulares (399)</span>
+              </div>
+              <div class="pattern-card" data-pattern="stripes">
+                <div class="pattern-preview stripes-pattern"></div>
+                <span>Listras Verticais</span>
+              </div>
+              <div class="pattern-card" data-pattern="gradient">
+                <div class="pattern-preview gradient-pattern"></div>
+                <span>Degradê Moderno</span>
+              </div>
+              <div class="pattern-card" data-pattern="solid">
+                <div class="pattern-preview solid-pattern"></div>
+                <span>Lisa Clássica</span>
+              </div>
+            </div>
+          </section>
+
+          <!-- TAB 3: PERSONALIZAÇÃO (NOME, NÚMERO, ESCUDO) -->
+          <section class="tab-pane" id="tab-personalizacao">
+            <div class="pane-header">
+              <h2>Identificação do Time</h2>
+              <p>Personalize escudos, patrocínios, nomes e numeração.</p>
+            </div>
+
+            <div class="input-card">
+              <label for="inputNumero">Número (Costas e Calção):</label>
+              <input type="text" id="inputNumero" maxlength="3" value="10" class="custom-input">
+            </div>
+
+            <div class="input-card">
+              <label for="inputNome">Nome do Jogador (Costas):</label>
+              <input type="text" id="inputNome" maxlength="15" value="JOGADOR" class="custom-input">
+            </div>
+
+            <div class="input-card">
+              <label for="inputPatrocinio">Patrocínio Master (Opcional):</label>
+              <input type="text" id="inputPatrocinio" maxlength="18" value="" placeholder="Ex: BANCO MASTER" class="custom-input">
+            </div>
+
+            <div class="input-card">
+              <label>Escudo do Clube (Camisa + Calção):</label>
+              <div class="file-dropzone" id="dropzoneEscudo">
+                <i class="material-icons">cloud_upload</i>
+                <span>Escudo Padrão Ativo (Clique para enviar PNG)</span>
+                <input type="file" id="uploadEscudo" accept="image/png, image/jpeg" style="display:none">
+              </div>
+            </div>
+          </section>
+
+          <!-- TAB 4: RESUMO & ORÇAMENTO -->
+          <section class="tab-pane" id="tab-resumo">
+            <div class="pane-header">
+              <h2>Resumo do Fardamento</h2>
+              <p>Revise a configuração do seu Kit Completo antes do orçamento.</p>
+            </div>
+
+            <div class="summary-card">
+              <div class="summary-row">
+                <span>Linha:</span>
+                <strong>JP Sport · Coleção 26</strong>
+              </div>
+              <div class="summary-row">
+                <span>Tecido:</span>
+                <strong>Dry · Respirável · Flexível</strong>
+              </div>
+              <div class="summary-row">
+                <span>Modelo de Gola:</span>
+                <strong id="summaryGola">Gola V Esportiva</strong>
+              </div>
+              <div class="summary-row">
+                <span>Cor Predominante:</span>
+                <strong id="summaryCorPredominante">Verde (#005913)</strong>
+              </div>
+              <div class="summary-row">
+                <span>Cor Secundária / Estampa:</span>
+                <strong id="summaryCorSecundaria">Limão (#B8ED28)</strong>
+              </div>
+              <div class="summary-row">
+                <span>Cor do Calção:</span>
+                <strong id="summaryCorCalcao">Branco (#FFFFFF)</strong>
+              </div>
+              <div class="summary-row">
+                <span>Cor do Meião:</span>
+                <strong id="summaryCorMeiao">Verde (#005913)</strong>
+              </div>
+              <div class="summary-row">
+                <span>Número / Atleta:</span>
+                <strong><span id="summaryNumero">10</span> - <span id="summaryNome">JOGADOR</span></strong>
+              </div>
+              <div class="summary-divider"></div>
+            </div>
+
+            <button class="btn btn-acao btn-checkout" id="btnCheckout">
+              Levar projeto pro orçamento <span class="seta">→</span>
+            </button>
+          </section>
+        </div>
+      </aside>
+    </div>
+
+    <!-- Hidden High-Res Texture Canvases (Render Targets for 3D Meshes) -->
+    <canvas id="textureCanvas" width="2048" height="2048" style="display:none;"></canvas>
+    <canvas id="shortsCanvas" width="1024" height="1024" style="display:none;"></canvas>
+    <canvas id="socksCanvas" width="512" height="512" style="display:none;"></canvas>
+  </div>
+
+  <!-- Main Application Script -->
+  <script src="js/app.js"></script>
+  <script src="assets/jp-sport.js"></script>
+</body>
+</html>

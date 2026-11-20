@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Coleção 26 · JP Sport</title>
+  <link rel="icon" href="assets/logo-jp-provisorio.svg">
+  <link rel="stylesheet" href="assets/jp-sport.css">
+  <style>
+    .topo-colecao { padding: 170px var(--gutter) 70px; background: var(--navy); color: #fff; position: relative; overflow: hidden; }
+    .topo-colecao .vazado.fundo { position: absolute; right: var(--gutter); bottom: -30px; font-size: clamp(160px, 22vw, 340px); color: rgba(255,255,255,.14); }
+    .produto[hidden] { display: none; }
+    .produto { transition: opacity .4s, transform .5s var(--ease-out); }
+    .produto.saindo { opacity: 0; transform: scale(.96); }
+    .card-sob-medida { background: var(--eletrico); color: #fff; padding: 28px; display: flex; flex-direction: column; justify-content: space-between; aspect-ratio: 4/5; position: relative; overflow: hidden; }
+    .card-sob-medida .t-h2 { font-size: 46px; }
+    .card-sob-medida:hover .seta { transform: rotate(-45deg); }
+    .card-sob-medida .seta { font-size: 34px; transition: transform .45s var(--ease-out); display: inline-block; }
+    .garantias { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; margin-top: 90px; border-top: 1px solid var(--linha-clara); }
+    .garantias div { padding: 26px 20px 0 0; }
+    .garantias b { display: block; font-family: var(--f-titulo); font-weight: 400; font-size: 22px; text-transform: uppercase; }
+    .garantias span { font-size: 14px; color: var(--grafite); }
+    @media (max-width: 760px) { .garantias { grid-template-columns: 1fr 1fr; gap: 20px; } }
+  </style>
+</head>
+<body class="jp">
+  <div class="cortina"><img class="simbolo" src="assets/logo-jp-provisorio.svg" alt=""></div>
+  <div class="progresso"></div>
+
+  <header class="jp-header escuro">
+    <a href="index.html" class="assinatura" aria-label="JP Sport · início">
+      <img class="simbolo" src="assets/logo-jp-provisorio.svg" alt="">
+      <span><span class="nome">JP SPORT</span><span class="mae">JP Produção Têxtil</span></span>
+    </a>
+    <nav class="jp-nav">
+      <a href="index.html">Início</a>
+      <a href="colecao.html" aria-current="page">Coleção 26</a>
+      <a href="simulador.html">Monte seu uniforme</a>
+      <a href="orcamento.html">Orçamento</a>
+    </nav>
+    <a href="orcamento.html" class="btn">Uniforme pro seu time <span class="seta">→</span></a>
+    <button class="menu-toggle" aria-label="Menu">Menu</button>
+  </header>
+
+  <section class="topo-colecao on-dark">
+    <div data-quadra="basquete" style="opacity:.1"></div>
+    <span class="vazado fundo" data-parallax="0.1">26</span>
+    <div class="rotulo" data-reveal style="position:relative"><b>02</b><span class="traco"></span>Coleção 26<span class="fio"></span></div>
+    <h1 class="t-h1" data-titulo style="position:relative">Feita pra<br><span class="t-eletrico">jogar.</span></h1>
+    <p class="t-lead" data-reveal data-atraso=".3" style="position:relative; margin-top:24px;">Camisas, regatas e kits em tecido dry. Escolha a peça e personalize no simulador 3D.</p>
+  </section>
+
+  <main class="secao" style="padding-top:60px;">
+    <div class="filtros" role="tablist" data-reveal>
+      <button class="filtro ativo" data-filtro="todos">Todos</button>
+      <button class="filtro" data-filtro="futebol">Futebol</button>
+      <button class="filtro" data-filtro="basquete">Basquete</button>
+      <button class="filtro" data-filtro="volei">Vôlei</button>
+      <button class="filtro" data-filtro="kit">Kits</button>
+    </div>
+
+    <div class="grade-produtos" id="grade">
+      <a class="produto" data-cat="futebol" href="simulador.html?modalidade=futebol" data-reveal>
+        <div class="moldura"><span class="tag cheia">Lançamento</span><img src="assets/produtos/futebol.png" alt="Camisa Dry Pro futebol navy" loading="lazy"><span class="ver">Personalizar em 3D <span>→</span></span></div>
+        <h3>Camisa Dry Pro</h3>
+        <div class="ficha">Futebol · Treino · Gola V</div>
+        <div class="preco" data-preco="futebol"></div>
+      </a>
+      <a class="produto" data-cat="basquete" href="simulador.html?modalidade=basquete" data-reveal data-atraso=".08">
+        <div class="moldura"><span class="tag">Quadra</span><img src="assets/produtos/basquete.png" alt="Regata de basquete navy" loading="lazy"><span class="ver">Personalizar em 3D <span>→</span></span></div>
+        <h3>Regata Dry Basquete</h3>
+        <div class="ficha">Basquete · Cava funda · Viés</div>
+        <div class="preco" data-preco="basquete"></div>
+      </a>
+      <a class="produto" data-cat="volei" href="simulador.html?modalidade=volei" data-reveal data-atraso=".16">
+        <div class="moldura"><span class="tag">Quadra · Areia</span><img src="assets/produtos/volei.png" alt="Camisa de vôlei navy" loading="lazy"><span class="ver">Personalizar em 3D <span>→</span></span></div>
+        <h3>Camisa Dry Vôlei</h3>
+        <div class="ficha">Vôlei · Manga curta · Ajustada</div>
+        <div class="preco" data-preco="volei"></div>
+      </a>
+      <a class="produto" data-cat="kit futebol" href="simulador.html?modalidade=futebol" data-reveal data-atraso=".24">
+        <div class="moldura"><span class="tag">Kit</span><img src="assets/produtos/kit.png" alt="Kit completo camisa, calção e meião" loading="lazy"><span class="ver">Personalizar em 3D <span>→</span></span></div>
+        <h3>Kit Completo</h3>
+        <div class="ficha">Camisa · Calção · Meião</div>
+        <div class="preco" data-preco="kit"></div>
+      </a>
+      <a class="card-sob-medida" data-cat="todos kit" href="orcamento.html" data-reveal="zoom" data-atraso=".3">
+        <span class="t-mono">Para equipes</span>
+        <h3 class="t-h2">Uniforme<br>pro seu<br>time.</h3>
+        <span class="seta">→</span>
+      </a>
+    </div>
+
+    <div class="garantias">
+      <div data-reveal><b>Feito na fábrica</b><span>Quem produz para grandes marcas produz o seu.</span></div>
+      <div data-reveal data-atraso=".08"><b>Prova em 3D</b><span>Aprovação visual antes da produção.</span></div>
+      <div data-reveal data-atraso=".16"><b>Grade completa</b><span>P · M · G · GG · XG · Infantil.</span></div>
+      <div data-reveal data-atraso=".24"><b>Atendimento direto</b><span>Orçamento pelo WhatsApp, sem intermediário.</span></div>
+    </div>
+  </main>
+
+  <footer class="jp-footer">
+    <div class="linha-final" style="margin-top:0; border-top:0;"><span>© <span data-ano></span> JP Produção Têxtil</span><span>Qualidade que veste confiança.</span></div>
+  </footer>
+
+  <script src="assets/jp-sport.js"></script>
+  <script>
+    const P = JP_CONFIG.precos;
+    const fmt = (v) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+    const valores = { futebol: P.futebol, basquete: P.basquete, volei: P.volei, kit: P.futebol + P.calcao + P.meiao };
+    document.querySelectorAll("[data-preco]").forEach((el) => {
+      el.textContent = (el.dataset.preco === "kit" ? "a partir de " : "") + fmt(valores[el.dataset.preco]);
+    });
+    // filtro com saída/entrada animada
+    document.querySelectorAll(".filtro").forEach((b) => b.addEventListener("click", () => {
+      document.querySelectorAll(".filtro").forEach((x) => x.classList.toggle("ativo", x === b));
+      const f = b.dataset.filtro;
+      document.querySelectorAll("#grade > *").forEach((card, i) => {
+        const mostra = f === "todos" || (card.dataset.cat || "").split(" ").includes(f) || card.classList.contains("card-sob-medida");
+        if (mostra) {
+          card.hidden = false;
+          card.classList.add("saindo");
+          setTimeout(() => card.classList.remove("saindo"), 40 + i * 60);
+        } else {
+          card.classList.add("saindo");
+          setTimeout(() => { card.hidden = true; }, 350);
+        }
+      });
+    }));
+  </script>
+</body>
+</html>

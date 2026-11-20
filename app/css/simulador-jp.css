@@ -1,0 +1,90 @@
+/* Tema JP Sport aplicado sobre o simulador (style.css). Cantos retos, navy + elétrico. */
+.sim-jp {
+  --bg-dark: #0A1630;
+  --bg-panel: #0F1F3D;
+  --bg-card: #142a52;
+  --bg-hover: #1b3466;
+  --primary: #2F5BFF;
+  --primary-hover: #2449d6;
+  --accent: #2F5BFF;
+  --text-main: #FFFFFF;
+  --text-muted: rgba(255, 255, 255, .6);
+  --border: rgba(255, 255, 255, .12);
+  overflow: hidden;
+  background: var(--bg-dark);
+}
+.sim-jp *:not(.material-icons) { font-family: var(--f-texto); }
+.sim-jp *, .sim-jp *::before, .sim-jp *::after { border-radius: 0 !important; }
+.sim-jp .swatch-circle { border-radius: 0 !important; }
+
+/* header */
+.sim-jp .main-header { height: 72px; background: var(--ink); color: #fff; }
+.sim-jp .assinatura .simbolo { width: 44px; height: 44px; }
+.sim-jp .assinatura .nome { font-family: var(--f-titulo) !important; font-size: 24px; }
+.sim-jp .assinatura .mae { font-family: var(--f-mono) !important; }
+.sim-jp .workspace { height: calc(100vh - 72px); }
+.sim-jp .kit-category-nav { gap: 0; background: transparent; border: 1px solid var(--border); padding: 0; }
+.sim-jp .cat-tab {
+  font-family: var(--f-titulo) !important; font-size: 20px; letter-spacing: .01em; text-transform: uppercase;
+  padding: 10px 22px; background: transparent; color: rgba(255,255,255,.6); border: 0; position: relative;
+  display: flex; align-items: baseline; gap: 8px; transition: color .3s, background .3s;
+}
+.sim-jp .cat-tab small { font-family: var(--f-mono) !important; font-size: 10px; letter-spacing: .15em; }
+.sim-jp .cat-tab::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 3px; background: var(--eletrico); transform: scaleX(0); transition: transform .45s var(--ease-out); }
+.sim-jp .cat-tab:hover { color: #fff; }
+.sim-jp .cat-tab.active { color: #fff; background: rgba(47,91,255,.12); }
+.sim-jp .cat-tab.active::after { transform: scaleX(1); }
+.sim-jp .btn-head { font-family: var(--f-mono) !important; font-size: 10.5px; letter-spacing: .14em; text-transform: uppercase; background: transparent; }
+.sim-jp .btn-head .material-icons { font-size: 17px; }
+.sim-jp .main-header .btn { padding: 13px 20px; font-size: 11.5px; }
+
+/* palco 3D */
+.sim-jp .viewer-container { background: radial-gradient(80% 70% at 50% 40%, #1b2f5c 0%, #0F1F3D 55%, #0A1630 100%); }
+.sim-jp .viewer-container.studio-light { background: radial-gradient(80% 70% at 50% 40%, #ffffff 0%, #F2F2F2 60%, #dcdfe5 100%); }
+.sim-jp .viewer-container::before {
+  /* linhas de quadra ao fundo */
+  content: ""; position: absolute; inset: 6% 8%; pointer-events: none; opacity: .08;
+  background:
+    linear-gradient(currentColor, currentColor) 50% 0 / 1px 100% no-repeat,
+    radial-gradient(circle at 50% 50%, transparent 59px, currentColor 60px, transparent 61px);
+  border: 1px solid currentColor; color: #fff;
+}
+.sim-jp .viewer-container.studio-light::before { color: #0F1F3D; }
+.sim-jp .product-badge { background: rgba(10,22,48,.82); border: 1px solid var(--border); border-left: 3px solid var(--eletrico); backdrop-filter: blur(8px); }
+.sim-jp .badge-rotulo { font-family: var(--f-mono) !important; font-size: 9.5px; letter-spacing: .2em; text-transform: uppercase; color: rgba(255,255,255,.55); margin-bottom: 4px; }
+.sim-jp .badge-title { font-family: var(--f-titulo) !important; font-size: 22px; font-weight: 400; text-transform: uppercase; letter-spacing: .01em; }
+.sim-jp .floating-controls { background: rgba(10,22,48,.88); border: 1px solid var(--border); }
+.sim-jp .float-btn { font-family: var(--f-mono) !important; font-size: 10.5px; letter-spacing: .12em; text-transform: uppercase; }
+.sim-jp .float-btn.active { background: var(--eletrico); }
+.sim-jp .studio-nav-arrow { background: rgba(10,22,48,.7); border: 1px solid var(--border); color: #fff; transition: background .3s, transform .3s; }
+.sim-jp .studio-nav-arrow:hover { background: var(--eletrico); transform: translateY(-50%) scale(1.06); }
+.sim-jp .spinner { border-color: rgba(255,255,255,.15); border-top-color: var(--eletrico); border-radius: 50% !important; }
+.sim-jp .loading-overlay { background: rgba(10,22,48,.85); }
+.sim-jp .loading-overlay p { font-family: var(--f-mono) !important; font-size: 11px; letter-spacing: .18em; text-transform: uppercase; }
+
+/* painel lateral */
+.sim-jp .sidebar-customizer { background: var(--bg-panel); border-left: 1px solid var(--border); }
+.sim-jp .tab-btn { font-family: var(--f-mono) !important; font-size: 10px; letter-spacing: .14em; text-transform: uppercase; }
+.sim-jp .tab-btn.active { color: #fff; border-bottom-color: var(--eletrico); }
+.sim-jp .tab-btn.active .material-icons { color: var(--eletrico); }
+.sim-jp .pane-header h2 { font-family: var(--f-titulo) !important; font-weight: 400; font-size: 30px; text-transform: uppercase; letter-spacing: .01em; line-height: 1; }
+.sim-jp .pane-header p { color: var(--text-muted); }
+.sim-jp .part-selector-group label, .sim-jp .input-card label { font-family: var(--f-mono) !important; font-size: 10px; letter-spacing: .18em; text-transform: uppercase; color: var(--text-muted) !important; }
+.sim-jp .part-btn { font-size: 12px; background: transparent; border: 1px solid var(--border); }
+.sim-jp .part-btn.active { background: var(--eletrico); border-color: var(--eletrico); }
+.sim-jp .swatch-item { transition: transform .25s var(--ease-out); }
+.sim-jp .swatch-item:hover { transform: translateY(-3px); }
+.sim-jp .swatch-item.active .swatch-circle { outline: 2px solid var(--eletrico); outline-offset: 3px; }
+.sim-jp .pattern-card.active { border-color: var(--eletrico); }
+.sim-jp .custom-select:disabled { opacity: .45; cursor: not-allowed; }
+.sim-jp .summary-card { background: var(--bg-card); border: 1px solid var(--border); }
+.sim-jp .btn-checkout { width: 100%; justify-content: center; margin-top: 16px; }
+
+/* entrada da interface */
+.sim-jp .sidebar-customizer { animation: entraDir .9s var(--ease-out) both .3s; }
+.sim-jp .product-badge { animation: entraEsq .9s var(--ease-out) both .5s; }
+.sim-jp .floating-controls { animation: sobeIn .9s var(--ease-out) both .6s; }
+@keyframes entraDir { from { transform: translateX(40px); opacity: 0; } }
+@keyframes entraEsq { from { transform: translateX(-30px); opacity: 0; } }
+@keyframes sobeIn { from { transform: translate(-50%, 30px); opacity: 0; } to { transform: translate(-50%, 0); } }
+@media (prefers-reduced-motion: reduce) { .sim-jp .sidebar-customizer, .sim-jp .product-badge, .sim-jp .floating-controls { animation: none; } }

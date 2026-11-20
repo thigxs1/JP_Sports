@@ -1,0 +1,13 @@
+{
+  "name": "jp-sports",
+  "version": "0.1.0",
+  "private": true,
+  "description": "JP Sport — site e simulador 3D de uniformes esportivos (futebol, basquete, vôlei)",
+  "scripts": {
+    "start": "node serve.js",
+    "build:embed": "node scripts/build_embedded_assets.js",
+    "test": "node tests/verify_kit_assets.js && node tests/verify_simulator_integration.js",
+    "blender:kit": "node scripts/blender_exec.js scripts/blender_refine_kit.py",
+    "blender:fotos": "node scripts/blender_exec.js scripts/blender_render_produtos.py"
+  }
+}

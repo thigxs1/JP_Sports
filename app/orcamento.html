@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Orçamento · Uniforme pro seu time · JP Sport</title>
+  <link rel="icon" href="assets/logo-jp-provisorio.svg">
+  <link rel="stylesheet" href="assets/jp-sport.css">
+  <style>
+    .orc { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); min-height: 100vh; }
+    .orc-form { padding: 150px var(--gutter) 80px; }
+    .orc-form form { display: grid; gap: 22px; margin-top: 48px; }
+    .linha2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+    .bloco-titulo { font-family: var(--f-mono); font-size: 11px; letter-spacing: .2em; text-transform: uppercase; color: var(--navy); margin-top: 14px; display: flex; gap: 12px; align-items: center; }
+    .bloco-titulo b { font-family: var(--f-titulo); font-weight: 400; font-size: 18px; letter-spacing: 0; }
+    .bloco-titulo::after { content: ""; flex: 1; height: 1px; background: var(--linha-clara); }
+    .mods { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    .mods input { position: absolute; opacity: 0; }
+    .mods label { position: relative; display: block; padding: 18px; border: 1px solid var(--linha-clara); cursor: pointer; font-family: var(--f-titulo); font-size: 22px; text-transform: uppercase; transition: background .3s, color .3s, border-color .3s; }
+    .mods label small { display: block; font-family: var(--f-mono); font-size: 10px; letter-spacing: .18em; color: var(--grafite); }
+    .mods input:checked + label { background: var(--navy); color: #fff; border-color: var(--navy); }
+    .mods input:checked + label small { color: rgba(255,255,255,.6); }
+    .mods input:focus-visible + label { outline: 2px solid var(--eletrico); outline-offset: 2px; }
+
+    .orc-resumo { position: sticky; top: 0; height: 100vh; background: var(--navy); color: #fff; padding: 150px var(--gutter) 50px; display: flex; flex-direction: column; overflow: hidden; }
+    .orc-resumo .vazado { position: absolute; right: -10px; bottom: -40px; font-size: 300px; color: rgba(255,255,255,.08); }
+    .resumo-linhas { margin: 30px 0; border-top: 1px solid var(--linha-escura); }
+    .resumo-linhas div { display: flex; justify-content: space-between; gap: 20px; padding: 13px 0; border-bottom: 1px solid var(--linha-escura); font-size: 14px; }
+    .resumo-linhas span { font-family: var(--f-mono); font-size: 10.5px; letter-spacing: .18em; text-transform: uppercase; color: rgba(255,255,255,.55); }
+    .chip { display: inline-block; width: 12px; height: 12px; border: 1px solid rgba(255,255,255,.5); vertical-align: -1px; margin-right: 6px; }
+    .total { margin-top: auto; position: relative; }
+    .total .t-mono { color: rgba(255,255,255,.6); }
+    .total .valor { font-family: var(--f-titulo); font-size: clamp(56px, 6vw, 92px); line-height: 1; transition: color .3s; }
+    .total .valor.pulsa { color: var(--eletrico); }
+    .total small { display: block; font-size: 12px; color: rgba(255,255,255,.5); margin-top: 6px; }
+    .sem-projeto { font-size: 14px; color: rgba(255,255,255,.7); border: 1px dashed var(--linha-escura); padding: 16px; margin-top: 20px; }
+    .sem-projeto a { color: #fff; border-bottom: 1px solid var(--eletrico); }
+
+    .enviado { position: fixed; inset: 0; z-index: 80; background: var(--navy); color: #fff; display: grid; place-items: center; text-align: center; opacity: 0; pointer-events: none; transition: opacity .5s; }
+    .enviado.ativo { opacity: 1; pointer-events: auto; }
+    .enviado .t-display { font-size: clamp(60px, 9vw, 140px); }
+    @media (max-width: 960px) { .orc { grid-template-columns: 1fr; } .orc-resumo { position: relative; height: auto; } .linha2, .mods { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body class="jp">
+  <div class="cortina"><img class="simbolo" src="assets/logo-jp-provisorio.svg" alt=""></div>
+
+  <header class="jp-header fixo-solido solido">
+    <a href="index.html" class="assinatura" aria-label="JP Sport · início">
+      <img class="simbolo" src="assets/logo-jp-provisorio.svg" alt="">
+      <span><span class="nome">JP SPORT</span><span class="mae">JP Produção Têxtil</span></span>
+    </a>
+    <nav class="jp-nav">
+      <a href="index.html">Início</a>
+      <a href="colecao.html">Coleção 26</a>
+      <a href="simulador.html">Monte seu uniforme</a>
+      <a href="orcamento.html" aria-current="page">Orçamento</a>
+    </nav>
+    <span></span>
+    <button class="menu-toggle" aria-label="Menu">Menu</button>
+  </header>
+
+  <main class="orc">
+    <section class="orc-form">
+      <div class="rotulo" data-reveal><b>05</b><span class="traco"></span>Orçamento<span class="fio"></span></div>
+      <h1 class="t-h1" data-titulo>Uniforme<br>pro seu <span class="t-eletrico">time.</span></h1>
+      <p class="t-lead" data-reveal data-atraso=".3" style="margin-top:20px;">Diga quantas peças e quais tamanhos. A gente responde pelo WhatsApp com prazo e valor final.</p>
+
+      <form id="formOrc" novalidate>
+        <div class="bloco-titulo" data-reveal><b>01</b> Modalidade</div>
+        <div class="mods" data-reveal>
+          <div><input type="radio" name="modalidade" id="m-fut" value="futebol" checked><label for="m-fut"><small>01 · Campo</small>Futebol</label></div>
+          <div><input type="radio" name="modalidade" id="m-bas" value="basquete"><label for="m-bas"><small>02 · Quadra</small>Basquete</label></div>
+          <div><input type="radio" name="modalidade" id="m-vol" value="volei"><label for="m-vol"><small>03 · Quadra</small>Vôlei</label></div>
+        </div>
+        <label style="display:flex; gap:10px; align-items:center; font-size:14px;" data-reveal>
+          <input type="checkbox" id="kitCompleto" checked> Kit completo (calção e meião juntos)
+        </label>
+
+        <div class="bloco-titulo" data-reveal><b>02</b> Grade de tamanhos</div>
+        <div class="tamanhos" data-reveal>
+          <div class="campo"><label for="q-p">P</label><input id="q-p" type="number" min="0" value="0" inputmode="numeric"></div>
+          <div class="campo"><label for="q-m">M</label><input id="q-m" type="number" min="0" value="0" inputmode="numeric"></div>
+          <div class="campo"><label for="q-g">G</label><input id="q-g" type="number" min="0" value="0" inputmode="numeric"></div>
+          <div class="campo"><label for="q-gg">GG</label><input id="q-gg" type="number" min="0" value="0" inputmode="numeric"></div>
+          <div class="campo"><label for="q-xg">XG</label><input id="q-xg" type="number" min="0" value="0" inputmode="numeric"></div>
+          <div class="campo"><label for="q-inf">Infantil</label><input id="q-inf" type="number" min="0" value="0" inputmode="numeric"></div>
+        </div>
+
+        <div class="bloco-titulo" data-reveal><b>03</b> Seu time</div>
+        <div class="linha2" data-reveal>
+          <div class="campo"><label for="time">Nome do time</label><input id="time" required placeholder="Ex.: Unidos da Vila"></div>
+          <div class="campo"><label for="cidade">Cidade / UF</label><input id="cidade" placeholder="Ex.: Goiânia / GO"></div>
+        </div>
+        <div class="linha2" data-reveal>
+          <div class="campo"><label for="nome">Seu nome</label><input id="nome" required autocomplete="name"></div>
+          <div class="campo"><label for="prazo">Precisa para quando?</label><input id="prazo" type="date"></div>
+        </div>
+        <div class="campo" data-reveal><label for="obs">Observações</label><textarea id="obs" rows="3" placeholder="Patrocínios, numeração, lista de nomes..."></textarea></div>
+
+        <div data-reveal style="display:flex; gap:28px; align-items:center; flex-wrap:wrap; margin-top:10px;">
+          <button type="submit" class="btn btn-acao" data-magnetico>Pedir orçamento no WhatsApp <span class="seta">→</span></button>
+          <span class="t-mono" id="erro" style="color:var(--grafite)"></span>
+        </div>
+      </form>
+    </section>
+
+    <aside class="orc-resumo on-dark">
+      <div data-quadra="futebol" id="quadraResumo" style="opacity:.08"></div>
+      <span class="vazado" id="qtdFundo">00</span>
+      <div class="rotulo" style="position:relative"><b>✓</b><span class="traco" style="transform:none"></span>Seu pedido<span class="fio"></span></div>
+      <div class="resumo-linhas" id="resumo" style="position:relative"></div>
+      <div id="semProjeto" class="sem-projeto" hidden>Você ainda não montou o uniforme. <a href="simulador.html">Abrir o simulador 3D →</a></div>
+      <div class="total">
+        <div class="t-mono">Estimativa</div>
+        <div class="valor" id="total">R$ 0,00</div>
+        <small>Valor de referência. O preço final vem no retorno do WhatsApp.</small>
+      </div>
+    </aside>
+  </main>
+
+  <div class="enviado" id="enviado">
+    <div>
+      <div class="t-mono" style="color:rgba(255,255,255,.6); margin-bottom:18px;">Pedido montado</div>
+      <div class="t-display">Bora pro<br><span class="t-eletrico">jogo.</span></div>
+      <p style="color:rgba(255,255,255,.7); margin-top:20px;">Abrimos o WhatsApp com o resumo. É só enviar.</p>
+      <a href="index.html" class="btn btn-linha" style="margin-top:20px;">Voltar ao início</a>
+    </div>
+  </div>
+
+  <script src="assets/jp-sport.js"></script>
+  <script>
+    const P = JP_CONFIG.precos;
+    const fmt = (v) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+    const NOMES = { futebol: "Futebol", basquete: "Basquete", volei: "Vôlei" };
+    const GOLAS = { v: "Gola V", redonda: "Gola redonda", polo: "Gola polo" };
+    let projeto = null;
+    try { projeto = JSON.parse(localStorage.getItem("jpSportProjeto") || "null"); } catch (e) {}
+
+    // modalidade vinda do simulador ou da URL
+    const pre = new URLSearchParams(location.search).get("modalidade") || (projeto && projeto.modalidade);
+    if (pre && document.querySelector(`input[value="${pre}"]`)) document.querySelector(`input[value="${pre}"]`).checked = true;
+
+    const qtdIds = ["q-p", "q-m", "q-g", "q-gg", "q-xg", "q-inf"];
+    const qtd = () => qtdIds.reduce((s, id) => s + Math.max(0, parseInt(document.getElementById(id).value || "0", 10)), 0);
+    const mod = () => document.querySelector('input[name="modalidade"]:checked').value;
+
+    let ultimoTotal = 0;
+    function atualizar() {
+      const m = mod();
+      const kit = document.getElementById("kitCompleto").checked;
+      const unit = P[m] + (kit ? P.calcao + P.meiao : 0);
+      const n = qtd();
+      const linhas = [
+        ["Modalidade", NOMES[m]],
+        ["Peças", kit ? "Camisa + calção + meião" : "Camisa"],
+        ["Atletas", String(n)],
+        ["Valor por atleta", fmt(unit)]
+      ];
+      if (projeto) {
+        linhas.push(["Gola", GOLAS[projeto.gola] || projeto.gola]);
+        linhas.push(["Cores", `<i class="chip" style="background:${projeto.cores.cor1.hex}"></i>${projeto.cores.cor1.nome} · <i class="chip" style="background:${projeto.cores.cor3.hex}"></i>${projeto.cores.cor3.nome}`]);
+        if (projeto.numero || projeto.nome) linhas.push(["Número / nome", `${projeto.numero || ""} ${projeto.nome || ""}`]);
+      }
+      document.getElementById("resumo").innerHTML = linhas.map(([k, v]) => `<div><span>${k}</span><strong>${v}</strong></div>`).join("");
+      document.getElementById("semProjeto").hidden = !!projeto;
+      document.getElementById("qtdFundo").textContent = String(n).padStart(2, "0");
+      document.getElementById("quadraResumo").setAttribute("data-quadra", m);
+      const novo = unit * n;
+      animaTotal(ultimoTotal, novo);
+      ultimoTotal = novo;
+    }
+    function animaTotal(de, para) {
+      const el = document.getElementById("total");
+      el.classList.add("pulsa");
+      // garante o valor final mesmo se a aba estiver em segundo plano (rAF pausado)
+      clearTimeout(animaTotal.t);
+      animaTotal.t = setTimeout(() => { el.textContent = fmt(para); el.classList.remove("pulsa"); }, 650);
+      const t0 = performance.now();
+      const passo = (t) => {
+        const p = Math.min(1, (t - t0) / 500), e = 1 - Math.pow(1 - p, 3);
+        el.textContent = fmt(de + (para - de) * e);
+        if (p < 1) requestAnimationFrame(passo); else setTimeout(() => el.classList.remove("pulsa"), 250);
+      };
+      requestAnimationFrame(passo);
+    }
+    document.getElementById("formOrc").addEventListener("input", atualizar);
+    atualizar();
+
+    document.getElementById("formOrc").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const erro = document.getElementById("erro");
+      const time = document.getElementById("time").value.trim();
+      const nome = document.getElementById("nome").value.trim();
+      if (!time || !nome) { erro.textContent = "Preencha o nome do time e o seu nome."; return; }
+      if (qtd() === 0) { erro.textContent = "Informe ao menos um tamanho."; return; }
+      erro.textContent = "";
+      const grade = qtdIds.map((id) => `${document.querySelector(`label[for="${id}"]`).textContent}: ${document.getElementById(id).value || 0}`).join(" · ");
+      const msg = [
+        `Olá, JP Sport! Quero um orçamento de uniforme.`,
+        `Time: ${time}${document.getElementById("cidade").value ? " (" + document.getElementById("cidade").value + ")" : ""}`,
+        `Responsável: ${nome}`,
+        `Modalidade: ${NOMES[mod()]}${document.getElementById("kitCompleto").checked ? " · kit completo" : ""}`,
+        `Grade: ${grade} (total ${qtd()})`,
+        projeto ? `Projeto 3D: ${GOLAS[projeto.gola] || projeto.gola}, ${projeto.cores.cor1.nome}/${projeto.cores.cor3.nome}, estampa ${projeto.estampa}` : "",
+        document.getElementById("prazo").value ? `Prazo: ${document.getElementById("prazo").value}` : "",
+        document.getElementById("obs").value ? `Obs.: ${document.getElementById("obs").value}` : ""
+      ].filter(Boolean).join("\n");
+      document.getElementById("enviado").classList.add("ativo");
+      window.open(`https://wa.me/${JP_CONFIG.whatsapp}?text=${encodeURIComponent(msg)}`, "_blank", "noopener");
+    });
+  </script>
+</body>
+</html>

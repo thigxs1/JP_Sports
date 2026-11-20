@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+  <!-- PROVISÓRIO: substituir pelo vetor oficial do símbolo JP (solicitar SVG/AI à marca-mãe,
+       conforme brandbook p.05). Não usar este desenho em peças finais. -->
+  <rect width="120" height="120" fill="#0F1F3D"/>
+  <text x="60" y="74" text-anchor="middle" font-family="Anton, Impact, sans-serif" font-size="58" fill="#FFFFFF" font-style="italic">JP</text>
+  <path d="M22 84 C 46 76, 74 92, 100 80" stroke="#FFFFFF" stroke-width="2" fill="none" opacity=".7"/>
+  <path d="M24 90 C 48 82, 76 98, 98 86" stroke="#FFFFFF" stroke-width="1" fill="none" opacity=".45"/>
+</svg>

@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JP Sport · Jogue no seu nível</title>
+  <meta name="description" content="Roupas esportivas com tecido dry, leve e respirável, feitas por quem produz para grandes marcas. Futebol, basquete e vôlei.">
+  <link rel="icon" href="assets/logo-jp-provisorio.svg">
+  <link rel="stylesheet" href="assets/jp-sport.css">
+  <style>
+    /* ---- Banner (claro, título em 3 linhas, última palavra elétrica) ---- */
+    .hero { display: grid; grid-template-columns: 1fr 1fr; min-height: 100vh; background: var(--off); }
+    .hero-txt { padding: 150px var(--gutter) 0; display: flex; flex-direction: column; }
+    .hero-txt .t-display { margin: 6px 0 28px; }
+    .hero-acoes { display: flex; gap: 34px; align-items: center; margin-top: 34px; flex-wrap: wrap; }
+    .hero-mods { margin-top: auto; display: grid; grid-template-columns: 1.2fr repeat(4, 1fr); border-top: 1px solid var(--linha-clara); }
+    .hero-mods > * { padding: 18px 14px 24px 0; font-family: var(--f-mono); font-size: 10.5px; letter-spacing: .18em; text-transform: uppercase; color: var(--grafite); }
+    .hero-mods a { border-left: 1px solid var(--linha-clara); padding-left: 14px; transition: color .3s, background .3s; }
+    .hero-mods a b { display: block; font-family: var(--f-titulo); font-weight: 400; font-size: 20px; letter-spacing: 0; color: var(--navy); }
+    .hero-mods a:hover { background: var(--navy); color: rgba(255,255,255,.7); }
+    .hero-mods a:hover b { color: var(--eletrico); }
+    .hero-vis { position: relative; background: radial-gradient(80% 70% at 40% 35%, #1b2f5c 0%, var(--navy) 55%, var(--ink) 100%); overflow: hidden; }
+    .hero-vis .marca-dagua { position: absolute; right: -2vw; bottom: -4vw; font-size: 34vw; color: var(--branco); opacity: .08; }
+    #hero3d { position: absolute; inset: 0; cursor: grab; }
+    #hero3d:active { cursor: grabbing; }
+    #hero3d canvas { opacity: 0; transform: scale(.92); transition: opacity 1.2s var(--ease-out), transform 1.6s var(--ease-out); }
+    #hero3d.pronto canvas { opacity: 1; transform: none; }
+    #hero3d .fallback { position: absolute; inset: 12% 14%; width: 72%; height: 76%; object-fit: contain; transition: opacity .8s; }
+    #hero3d.pronto .fallback { opacity: 0; }
+    .hero-vis .specs { position: absolute; top: 120px; right: var(--gutter); text-align: right; color: rgba(255,255,255,.72); border-right: 2px solid var(--eletrico); padding-right: 14px; line-height: 2; }
+    .hero-vis .mira { left: 47%; top: 34%; }
+    .hero-vis .dica { position: absolute; bottom: 28px; left: 50%; transform: translateX(-50%); color: rgba(255,255,255,.55); display: flex; gap: 10px; align-items: center; }
+    .hero-vis .dica i { width: 26px; height: 1px; background: currentColor; display: inline-block; animation: vaivem 2.2s ease-in-out infinite; }
+    @keyframes vaivem { 50% { transform: translateX(8px); } }
+
+    /* ---- Tecnologia ---- */
+    .tec-topo { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: end; margin-bottom: 70px; }
+    .seta-anim { display: inline-block; animation: sobe 1.8s var(--ease-out) infinite; }
+    .seta-anim.desce { animation-name: desce; }
+    @keyframes sobe { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+    @keyframes desce { 0%,100% { transform: translateY(0); } 50% { transform: translateY(10px); } }
+
+    /* ---- Simulador teaser ---- */
+    .sim { display: grid; grid-template-columns: 1fr 1.1fr; gap: clamp(40px, 6vw, 100px); align-items: center; }
+    .sim-vis { position: relative; aspect-ratio: 4/5; background: radial-gradient(90% 80% at 50% 30%, #1c3463, var(--navy) 60%, var(--ink)); overflow: hidden; }
+    .sim-vis img { position: absolute; inset: 6% 10%; width: 80%; height: 88%; object-fit: contain; filter: drop-shadow(0 30px 30px rgba(0,0,0,.5)); }
+    .sim-vis .vazado { position: absolute; left: 22px; top: 10px; font-size: 140px; color: rgba(255,255,255,.35); }
+    .passos { list-style: none; padding: 0; margin: 40px 0; counter-reset: p; }
+    .passos li { display: grid; grid-template-columns: 64px 1fr; align-items: baseline; padding: 18px 0; border-top: 1px solid var(--linha-clara); }
+    .passos li:last-child { border-bottom: 1px solid var(--linha-clara); }
+    .passos li b { font-family: var(--f-titulo); font-weight: 400; font-size: 28px; }
+    .passos li span { font-size: 15px; }
+
+    /* ---- CTA time ---- */
+    .cta { text-align: left; overflow: hidden; }
+    .cta .conteudo { position: relative; max-width: 1100px; }
+    .cta .t-display { margin: 0 0 40px; }
+
+    @media (max-width: 900px) {
+      .hero { grid-template-columns: 1fr; }
+      .hero-vis { min-height: 78vh; }
+      .hero-mods { grid-template-columns: repeat(2, 1fr); }
+      .hero-mods > span { grid-column: 1 / -1; }
+      .tec-topo, .sim { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body class="jp">
+  <div class="cortina"><img class="simbolo" src="assets/logo-jp-provisorio.svg" alt=""></div>
+  <div class="progresso"></div>
+
+  <div class="barra-beneficios"><span>Tecido dry</span><span>Feito por quem produz para grandes marcas</span><span>Uniforme pro seu time</span></div>
+
+  <header class="jp-header" style="top: 32px;">
+    <a href="index.html" class="assinatura" aria-label="JP Sport · início">
+      <img class="simbolo" src="assets/logo-jp-provisorio.svg" alt="">
+      <span><span class="nome">JP SPORT</span><span class="mae">JP Produção Têxtil</span></span>
+    </a>
+    <nav class="jp-nav">
+      <a href="index.html" aria-current="page">Início</a>
+      <a href="colecao.html">Coleção 26</a>
+      <a href="simulador.html">Monte seu uniforme</a>
+      <a href="orcamento.html">Orçamento</a>
+    </nav>
+    <a href="orcamento.html" class="btn">Uniforme pro seu time <span class="seta">→</span></a>
+    <button class="menu-toggle" aria-label="Menu">Menu</button>
+  </header>
+
+  <main>
+    <!-- 01 · BANNER -->
+    <section class="hero">
+      <div class="hero-txt">
+        <div class="rotulo" data-reveal><b>01</b><span class="traco"></span>Da indústria para o campo<span class="fio"></span></div>
+        <h1 class="t-display" data-titulo>Jogue<br>no seu<br><span class="t-eletrico">nível.</span></h1>
+        <p class="t-lead" data-reveal data-atraso=".35">Roupas esportivas com <strong>tecido dry, leve e respirável</strong>, feitas por quem produz para grandes marcas. Do treino à final.</p>
+        <div class="hero-acoes" data-reveal data-atraso=".5">
+          <a href="simulador.html" class="btn btn-acao" data-magnetico>Monte seu uniforme <span class="seta">→</span></a>
+          <a href="orcamento.html" class="btn btn-linha">Uniforme pro seu time →</a>
+        </div>
+        <div class="hero-mods" data-reveal data-atraso=".7">
+          <span>Escolha<br>seu jogo</span>
+          <a href="simulador.html?modalidade=futebol">01<b>Futebol</b></a>
+          <a href="simulador.html?modalidade=basquete">02<b>Basquete</b></a>
+          <a href="simulador.html?modalidade=volei">03<b>Vôlei</b></a>
+          <a href="colecao.html">04<b>Kits</b></a>
+        </div>
+      </div>
+
+      <div class="hero-vis on-dark">
+        <span class="vazado marca-dagua" data-parallax="0.08">JP</span>
+        <div id="hero3d" data-modelo="models/kit_completo.obj">
+          <img class="fallback" src="assets/produtos/futebol.png" alt="Camisa JP Sport Dry Pro navy">
+        </div>
+        <div class="specs t-mono" data-reveal="dir" data-atraso=".6">Leve<br>Respirável<br>Resistente</div>
+        <div class="mira" data-atraso=".2">
+          <div class="anel"></div><div class="haste"></div>
+          <span class="tag">Camisa dry / treino</span>
+          <span class="tag cheia">Coleção 26</span>
+        </div>
+        <div class="dica t-mono">Arraste para girar <i></i></div>
+      </div>
+    </section>
+
+    <!-- FAIXA CORRIDA -->
+    <div class="faixa" aria-hidden="true">
+      <div class="faixa-trilho">
+        <div class="faixa-item">Futebol <span class="losango"></span><span class="vz">Basquete</span><span class="losango"></span>Vôlei <span class="losango"></span><span class="vz">Society</span><span class="losango"></span>Treino <span class="losango"></span><span class="vz">Seca rápido</span><span class="losango"></span></div>
+        <div class="faixa-item">Futebol <span class="losango"></span><span class="vz">Basquete</span><span class="losango"></span>Vôlei <span class="losango"></span><span class="vz">Society</span><span class="losango"></span>Treino <span class="losango"></span><span class="vz">Seca rápido</span><span class="losango"></span></div>
+      </div>
+    </div>
+
+    <!-- 02 · MODALIDADES -->
+    <section class="secao" id="modalidades">
+      <div class="rotulo" data-reveal><b>02</b><span class="traco"></span>Modalidades<span class="fio"></span></div>
+      <div class="grade-2" style="margin-bottom: 56px;">
+        <h2 class="t-h1" data-titulo>Escolha<br>seu <span class="t-eletrico">jogo.</span></h2>
+        <p class="t-lead" data-reveal>Uniformes e peças de treino desenvolvidos para o movimento de cada modalidade. Monte o seu em 3D e veja antes de pedir.</p>
+      </div>
+      <div class="cards-modalidade">
+        <a class="card-mod" href="simulador.html?modalidade=futebol" data-reveal data-atraso="0">
+          <div data-quadra="futebol"></div>
+          <div class="topo"><span class="vazado">01</span><span class="tag">Campo · Society</span></div>
+          <div class="foto"><img src="assets/produtos/futebol.png" alt="Camisa de futebol JP Sport" loading="lazy"></div>
+          <div class="barra">Futebol <span class="seta">→</span></div>
+        </a>
+        <a class="card-mod" href="simulador.html?modalidade=basquete" data-reveal data-atraso=".1">
+          <div data-quadra="basquete"></div>
+          <div class="topo"><span class="vazado">02</span><span class="tag">Quadra</span></div>
+          <div class="foto"><img src="assets/produtos/basquete.png" alt="Regata de basquete JP Sport" loading="lazy"></div>
+          <div class="barra">Basquete <span class="seta">→</span></div>
+        </a>
+        <a class="card-mod" href="simulador.html?modalidade=volei" data-reveal data-atraso=".2">
+          <div data-quadra="volei"></div>
+          <div class="topo"><span class="vazado">03</span><span class="tag">Quadra · Areia</span></div>
+          <div class="foto"><img src="assets/produtos/volei.png" alt="Camisa de vôlei JP Sport" loading="lazy"></div>
+          <div class="barra">Vôlei <span class="seta">→</span></div>
+        </a>
+        <a class="card-mod" href="colecao.html" data-reveal data-atraso=".3">
+          <div data-quadra="society"></div>
+          <div class="topo"><span class="vazado">04</span><span class="tag">Camisa · Calção · Meião</span></div>
+          <div class="foto"><img src="assets/produtos/kit.png" alt="Kit completo JP Sport" loading="lazy"></div>
+          <div class="barra">Kit completo <span class="seta">→</span></div>
+        </a>
+      </div>
+    </section>
+
+    <!-- 03 · TECNOLOGIA (escuro) -->
+    <section class="secao escura">
+      <div data-quadra="futebol" style="opacity:.07"></div>
+      <div class="rotulo" data-reveal style="position:relative"><b>03</b><span class="traco"></span>Tecnologia<span class="fio"></span></div>
+      <div class="tec-topo" style="position:relative">
+        <h2 class="t-h1" data-titulo>Suor <span class="seta-anim desce">↓</span><br><span class="t-eletrico">Rendimento <span class="seta-anim">↑</span></span></h2>
+        <p class="t-lead" data-reveal>Tecido dry desenvolvido na mesma fábrica que produz para grandes marcas. Seca rápido. Aguenta o jogo. Feita pra correr 90 minutos.</p>
+      </div>
+      <div class="beneficios" style="position:relative">
+        <div class="beneficio" data-reveal data-atraso="0"><div class="num vazado" data-conta="1">0</div><h4>Dry</h4><p>Afasta o suor da pele e seca rápido.</p></div>
+        <div class="beneficio" data-reveal data-atraso=".1"><div class="num vazado" data-conta="2">0</div><h4>Respirável</h4><p>Malha aberta que deixa o calor sair.</p></div>
+        <div class="beneficio" data-reveal data-atraso=".2"><div class="num vazado" data-conta="3">0</div><h4>Flexível</h4><p>Estica com o movimento, volta ao lugar.</p></div>
+        <div class="beneficio" data-reveal data-atraso=".3"><div class="num vazado" data-conta="4">0</div><h4>Durável</h4><p>Costura de fábrica. Aguenta temporada.</p></div>
+      </div>
+    </section>
+
+    <!-- 04 · SIMULADOR -->
+    <section class="secao">
+      <div class="rotulo" data-reveal><b>04</b><span class="traco"></span>Simulador 3D<span class="fio"></span></div>
+      <div class="sim">
+        <div class="sim-vis" data-reveal="zoom">
+          <span class="vazado">3D</span>
+          <img src="assets/produtos/kit.png" alt="Kit completo em 3D" loading="lazy" data-parallax="0.05">
+        </div>
+        <div>
+          <h2 class="t-h1" data-titulo>Veja antes<br>de <span class="t-eletrico">vestir.</span></h2>
+          <ol class="passos">
+            <li data-reveal data-atraso="0"><b>01</b><span>Escolha a modalidade: futebol, basquete ou vôlei.</span></li>
+            <li data-reveal data-atraso=".08"><b>02</b><span>Defina cores, gola e estampa da peça.</span></li>
+            <li data-reveal data-atraso=".16"><b>03</b><span>Coloque escudo, nome e número do seu time.</span></li>
+            <li data-reveal data-atraso=".24"><b>04</b><span>Gire em 360° e peça o orçamento com o projeto pronto.</span></li>
+          </ol>
+          <a href="simulador.html" class="btn" data-reveal>Abrir simulador <span class="seta">→</span></a>
+        </div>
+      </div>
+    </section>
+
+    <!-- 05 · CTA TIME -->
+    <section class="secao ink cta on-dark">
+      <div data-quadra="futebol" style="opacity:.12"></div>
+      <div class="conteudo">
+        <div class="rotulo" data-reveal><b>05</b><span class="traco"></span>Para equipes<span class="fio"></span></div>
+        <h2 class="t-display" data-titulo>Uniforme<br>pro seu<br><span class="t-eletrico">time.</span></h2>
+        <div style="display:flex; gap:34px; align-items:center; flex-wrap:wrap;" data-reveal>
+          <a href="orcamento.html" class="btn btn-acao" data-magnetico>Peça orçamento <span class="seta">→</span></a>
+          <span class="t-mono" style="color:rgba(255,255,255,.6)">P · M · G · GG · XG · Infantil</span>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="jp-footer">
+    <div class="colunas">
+      <div>
+        <div class="assinatura" style="color:#fff"><img class="simbolo" src="assets/logo-jp-provisorio.svg" alt=""><span><span class="nome">JP SPORT</span><span class="mae">JP Produção Têxtil</span></span></div>
+        <p style="max-width:34ch; margin-top:20px;">Da indústria para o campo. Qualidade que veste confiança.</p>
+      </div>
+      <div><h5>Modalidades</h5><a href="simulador.html?modalidade=futebol">Futebol</a><a href="simulador.html?modalidade=basquete">Basquete</a><a href="simulador.html?modalidade=volei">Vôlei</a></div>
+      <div><h5>Loja</h5><a href="colecao.html">Coleção 26</a><a href="simulador.html">Simulador 3D</a><a href="orcamento.html">Orçamento</a></div>
+      <div><h5>Tecido</h5><a href="#">Dry</a><a href="#">Respirável</a><a href="#">Flexível</a><a href="#">Durável</a></div>
+    </div>
+    <div class="linha-final"><span>© <span data-ano></span> JP Produção Têxtil</span><span>Qualidade que veste confiança.</span></div>
+  </footer>
+
+  <script src="js/three.min.js"></script>
+  <script src="js/OBJLoader.js"></script>
+  <script>if (location.protocol === "file:") document.write('<script src="js/embedded_assets.js"><\/script>');</script>
+  <script src="js/hero3d.js"></script>
+  <script src="assets/jp-sport.js"></script>
+</body>
+</html>
