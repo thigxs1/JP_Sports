@@ -37,6 +37,7 @@
       <a href="colecao.html" aria-current="page">Coleção 26</a>
       <a href="simulador.html">Monte seu uniforme</a>
       <a href="orcamento.html">Orçamento</a>
+      <a href="referencia.html">Playbook</a>
     </nav>
     <a href="orcamento.html" class="btn">Uniforme pro seu time <span class="seta">→</span></a>
     <button class="menu-toggle" aria-label="Menu">Menu</button>
@@ -53,10 +54,10 @@
   <main class="secao" style="padding-top:60px;">
     <div class="filtros" role="tablist" data-reveal>
       <button class="filtro ativo" data-filtro="todos">Todos</button>
-      <button class="filtro" data-filtro="futebol">Futebol</button>
-      <button class="filtro" data-filtro="basquete">Basquete</button>
-      <button class="filtro" data-filtro="volei">Vôlei</button>
-      <button class="filtro" data-filtro="kit">Kits</button>
+      <button class="filtro" data-filtro="futebol"><span data-icone="futebol"></span>Futebol</button>
+      <button class="filtro" data-filtro="basquete"><span data-icone="basquete"></span>Basquete</button>
+      <button class="filtro" data-filtro="volei"><span data-icone="volei"></span>Vôlei</button>
+      <button class="filtro" data-filtro="kit"><span data-icone="kit"></span>Kits</button>
     </div>
 
     <div class="grade-produtos" id="grade">
@@ -103,6 +104,7 @@
     <div class="linha-final" style="margin-top:0; border-top:0;"><span>© <span data-ano></span> JP Produção Têxtil</span><span>Qualidade que veste confiança.</span></div>
   </footer>
 
+  <script src="assets/icones-modalidades.js"></script>
   <script src="assets/jp-sport.js"></script>
   <script>
     const P = JP_CONFIG.precos;
