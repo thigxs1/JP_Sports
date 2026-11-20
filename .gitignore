@@ -11,6 +11,7 @@
 !/README.md
 !/.gitignore
 !/.gitattributes
+!/.mcp.json
 !/.claude/
 /.claude/*
 !/.claude/launch.json
