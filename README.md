@@ -20,6 +20,7 @@ Design system: `app/assets/jp-sport.css` + `app/assets/jp-sport.js` (segue o Bra
 ## Supabase
 - Config pública: `app/assets/supabase-config.js` (URL + chave publishable).
 - Tabelas e políticas RLS: `docs/supabase/schema.sql` (rodar no SQL Editor).
+- Passo a passo completo: `docs/supabase/README.md`.
 - O formulário de orçamento grava em `orcamentos`; se o banco falhar, o WhatsApp segue funcionando.
 
 ## Deploy (Vercel)
