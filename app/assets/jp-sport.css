@@ -239,6 +239,14 @@ strong { font-weight: 600; }
 .card-mod:hover .barra { background: var(--eletrico); color: var(--branco); }
 .card-mod:hover .barra .seta { transform: rotate(-45deg); }
 
+/* ---- Ícones de modalidade (assets/icones-modalidades.js) ---- */
+.icone-mod { display: inline-block; flex: none; line-height: 0; }
+.icone-mod svg { width: 100%; height: 100%; display: block; }
+.card-mod .icone-mod { position: absolute; right: 22px; bottom: 82px; width: 64px; height: 64px; filter: drop-shadow(0 10px 14px rgba(0,0,0,.4)); transition: transform .55s var(--ease-out); z-index: 2; }
+.card-mod:hover .icone-mod { transform: rotate(-16deg) scale(1.08); }
+.barra .icone-mod, .hero-mods .icone-mod, .jp-footer .icone-mod, .cat-tab .icone-mod, .filtro .icone-mod, .mods .icone-mod { width: 1.1em; height: 1.1em; vertical-align: -.18em; margin-right: .45em; }
+.hero-mods a .icone-mod { width: 22px; height: 22px; margin: 0 0 6px; display: block; }
+
 /* ---------- Grade de produtos (coleção) ---------- */
 .grade-produtos { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 28px 20px; }
 .produto { display: block; }

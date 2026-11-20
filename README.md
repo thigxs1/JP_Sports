@@ -9,9 +9,22 @@ Site e simulador 3D de uniformes esportivos da **JP Sport** (linha esportiva da 
 | Início | `app/index.html` |
 | Coleção 26 | `app/colecao.html` |
 | Simulador 3D (futebol · basquete · vôlei) | `app/simulador.html` |
-| Orçamento (WhatsApp) | `app/orcamento.html` |
+| Orçamento (WhatsApp + Supabase) | `app/orcamento.html` |
+| Playbook da marca (referência, Projeto 01) | `app/referencia.html` |
 
 Design system: `app/assets/jp-sport.css` + `app/assets/jp-sport.js` (segue o Brandbook v1.0).
+
+## Ícones de modalidade
+`app/assets/icones-modalidades.js` desenha o ícone de cada modalidade (futebol, basquete, vôlei, kit) em qualquer `<span data-icone="futebol"></span>`. Usado na Home, Coleção, Simulador, Orçamento e Playbook.
+
+## Supabase
+- Config pública: `app/assets/supabase-config.js` (URL + chave publishable).
+- Tabelas e políticas RLS: `docs/supabase/schema.sql` (rodar no SQL Editor).
+- Passo a passo completo: `docs/supabase/README.md`.
+- O formulário de orçamento grava em `orcamentos`; se o banco falhar, o WhatsApp segue funcionando.
+
+## Deploy (Vercel)
+Importe o repositório na Vercel. O `vercel.json` publica a pasta `app/` como site estático, sem build.
 
 ## Rodar localmente
 Requer [Node.js](https://nodejs.org) 18+.

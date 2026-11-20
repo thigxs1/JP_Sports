@@ -55,6 +55,7 @@
       <a href="colecao.html">Coleção 26</a>
       <a href="simulador.html">Monte seu uniforme</a>
       <a href="orcamento.html" aria-current="page">Orçamento</a>
+      <a href="referencia.html">Playbook</a>
     </nav>
     <span></span>
     <button class="menu-toggle" aria-label="Menu">Menu</button>
@@ -69,9 +70,9 @@
       <form id="formOrc" novalidate>
         <div class="bloco-titulo" data-reveal><b>01</b> Modalidade</div>
         <div class="mods" data-reveal>
-          <div><input type="radio" name="modalidade" id="m-fut" value="futebol" checked><label for="m-fut"><small>01 · Campo</small>Futebol</label></div>
-          <div><input type="radio" name="modalidade" id="m-bas" value="basquete"><label for="m-bas"><small>02 · Quadra</small>Basquete</label></div>
-          <div><input type="radio" name="modalidade" id="m-vol" value="volei"><label for="m-vol"><small>03 · Quadra</small>Vôlei</label></div>
+          <div><input type="radio" name="modalidade" id="m-fut" value="futebol" checked><label for="m-fut"><small>01 · Campo</small><span data-icone="futebol"></span>Futebol</label></div>
+          <div><input type="radio" name="modalidade" id="m-bas" value="basquete"><label for="m-bas"><small>02 · Quadra</small><span data-icone="basquete"></span>Basquete</label></div>
+          <div><input type="radio" name="modalidade" id="m-vol" value="volei"><label for="m-vol"><small>03 · Quadra</small><span data-icone="volei"></span>Vôlei</label></div>
         </div>
         <label style="display:flex; gap:10px; align-items:center; font-size:14px;" data-reveal>
           <input type="checkbox" id="kitCompleto" checked> Kit completo (calção e meião juntos)
@@ -128,6 +129,9 @@
     </div>
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+  <script src="assets/supabase-config.js"></script>
+  <script src="assets/icones-modalidades.js"></script>
   <script src="assets/jp-sport.js"></script>
   <script>
     const P = JP_CONFIG.precos;
@@ -206,6 +210,20 @@
         document.getElementById("prazo").value ? `Prazo: ${document.getElementById("prazo").value}` : "",
         document.getElementById("obs").value ? `Obs.: ${document.getElementById("obs").value}` : ""
       ].filter(Boolean).join("\n");
+      // registra o pedido no Supabase (sem bloquear o WhatsApp)
+      if (window.JP_DB) {
+        const kit = document.getElementById("kitCompleto").checked;
+        const gradeObj = {};
+        qtdIds.forEach((id) => { gradeObj[document.querySelector(`label[for="${id}"]`).textContent] = parseInt(document.getElementById(id).value || "0", 10); });
+        JP_DB.salvar("orcamentos", {
+          time, cidade: document.getElementById("cidade").value || null, responsavel: nome,
+          modalidade: mod(), kit_completo: kit, grade: gradeObj, total_pecas: qtd(),
+          estimativa: (P[mod()] + (kit ? P.calcao + P.meiao : 0)) * qtd(),
+          prazo: document.getElementById("prazo").value || null,
+          observacoes: document.getElementById("obs").value || null,
+          projeto_3d: projeto
+        });
+      }
       document.getElementById("enviado").classList.add("ativo");
       window.open(`https://wa.me/${JP_CONFIG.whatsapp}?text=${encodeURIComponent(msg)}`, "_blank", "noopener");
     });
