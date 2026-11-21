@@ -8,6 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Graduate&family=Montserrat:wght@800;900&family=Teko:wght@600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="assets/jp-sport.css">
   <link rel="stylesheet" href="css/simulador-jp.css">
@@ -36,20 +37,20 @@
 
       <!-- Modalidades -->
       <nav class="kit-category-nav">
-        <button class="cat-tab active" data-kit-mode="futebol"><small>01</small><span data-icone="futebol"></span>Futebol</button>
-        <button class="cat-tab" data-kit-mode="basquete"><small>02</small><span data-icone="basquete"></span>Basquete</button>
-        <button class="cat-tab" data-kit-mode="volei"><small>03</small><span data-icone="volei"></span>Vôlei</button>
+        <button class="cat-tab active" data-kit-mode="futebol" title="Futebol" aria-label="Futebol"><span data-icone="futebol"></span></button>
+        <button class="cat-tab" data-kit-mode="basquete" title="Basquete" aria-label="Basquete"><span data-icone="basquete"></span></button>
+        <button class="cat-tab" data-kit-mode="volei" title="Vôlei" aria-label="Vôlei"><span data-icone="volei"></span></button>
       </nav>
-      
+
       <div class="header-right">
-        <button class="btn-head" id="btnToggleStudioBg" title="Alternar Fundo Claro/Escuro">
-          <i class="material-icons">wb_sunny</i> <span id="bgStateText">Estúdio Claro</span>
+        <button class="btn-head btn-ico" id="btnToggleStudioBg" title="Estúdio escuro (clique para claro)" aria-label="Alternar fundo do estúdio">
+          <i class="material-icons" id="bgStateIcon">dark_mode</i><span id="bgStateText" class="sr-only">Estúdio Escuro</span>
         </button>
-        <button class="btn-head" id="btnResetView" title="Resetar Câmera">
-          <i class="material-icons">filter_center_focus</i> Visão Padrão
+        <button class="btn-head btn-ico" id="btnResetView" title="Visão padrão" aria-label="Visão padrão">
+          <i class="material-icons">filter_center_focus</i>
         </button>
-        <button class="btn-head" id="btnToggleRotate" title="Auto Rotação">
-          <i class="material-icons">360</i> <span id="rotateStateText">Auto Giro: OFF</span>
+        <button class="btn-head btn-ico" id="btnToggleRotate" title="Auto giro: desligado" aria-label="Auto giro" aria-pressed="false">
+          <i class="material-icons">360</i><span id="rotateStateText" class="sr-only">Auto Giro: OFF</span>
         </button>
         <button class="btn btn-acao" id="btnBudget" title="Pedir orçamento" data-magnetico>
           Pedir orçamento <span class="seta">→</span>
@@ -60,7 +61,7 @@
     <!-- Main Workspace -->
     <div class="workspace">
       <!-- Left Panel: 3D Canvas & Camera Overlay -->
-      <div class="viewer-container studio-light" id="viewerContainer">
+      <div class="viewer-container" id="viewerContainer">
         <!-- 3D WebGL Canvas Injection -->
         <canvas id="webglCanvas"></canvas>
 
@@ -149,6 +150,15 @@
             <div class="swatches-grid" id="swatchesGrid">
               <!-- Dynamically populated from camisa_info.json -->
             </div>
+
+            <!-- Cor livre (hexadecimal) -->
+            <div class="cor-livre">
+              <label for="inputCorHex">Cor personalizada</label>
+              <div class="cor-livre-linha">
+                <input type="color" id="inputCorPicker" value="#0f1f3d" aria-label="Escolher cor personalizada">
+                <input type="text" id="inputCorHex" class="custom-input" value="#0F1F3D" maxlength="7" spellcheck="false" placeholder="#RRGGBB">
+              </div>
+            </div>
           </section>
 
           <!-- TAB 2: ESTAMPAS E GOLAS -->
@@ -206,6 +216,16 @@
             <div class="input-card">
               <label for="inputNome">Nome do Jogador (Costas):</label>
               <input type="text" id="inputNome" maxlength="15" value="JOGADOR" class="custom-input">
+            </div>
+
+            <div class="input-card">
+              <label>Fonte do Nome e Número:</label>
+              <div class="fonte-opcoes" id="fonteOpcoes" role="radiogroup" aria-label="Fonte do nome e número">
+                <button type="button" class="fonte-btn active" data-fonte="Montserrat" style="font-family:'Montserrat';font-weight:900">10 Clássica</button>
+                <button type="button" class="fonte-btn" data-fonte="Bebas Neue" style="font-family:'Bebas Neue'">10 Bebas</button>
+                <button type="button" class="fonte-btn" data-fonte="Teko" style="font-family:'Teko';font-weight:600">10 Teko</button>
+                <button type="button" class="fonte-btn" data-fonte="Graduate" style="font-family:'Graduate'">10 College</button>
+              </div>
             </div>
 
             <div class="input-card">

@@ -86,7 +86,8 @@ const estadoSimulador = {
   patrocinio: "",
   escudoImg: null,
   autoRotate: false,
-  studioLight: true
+  studioLight: false,
+  fonte: "Montserrat"
 };
 
 // Variáveis Globais Three.js
@@ -121,6 +122,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   initCanvases();
   initDOMEvents();
   initColorSwatches();
+  initCorLivre();
+  initFontes();
   initThree();
   await loadSVGTemplate();
   await loadPBRMaps();
@@ -839,11 +842,11 @@ function drawPlayerDetails() {
   // 5. Nome e Número nas Costas (Painel Traseiro: centro em X=578, Y=980..1260)
   textureCtx.fillStyle = estadoSimulador.cores.cor5.hex;
   if (estadoSimulador.nome) {
-    textureCtx.font = "800 62px 'Montserrat', sans-serif";
+    textureCtx.font = fonteCamisa(62);
     textureCtx.fillText(estadoSimulador.nome.toUpperCase(), 578, 965);
   }
   if (estadoSimulador.numero) {
-    textureCtx.font = "900 260px 'Montserrat', sans-serif";
+    textureCtx.font = fonteCamisa(260);
     textureCtx.fillText(estadoSimulador.numero, 578, 1210);
   }
 
@@ -981,6 +984,72 @@ function updateSummaryLabels() {
   if (sm) sm.innerText = `${estadoSimulador.cores.corMeiao.nome} (${estadoSimulador.cores.corMeiao.hex})`;
 }
 
+// Fonte escolhida para nome e número nas costas.
+const FONTES_CAMISA = {
+  "Montserrat": "900",
+  "Bebas Neue": "400",
+  "Teko": "600",
+  "Graduate": "400"
+};
+function fonteCamisa(px) {
+  const f = estadoSimulador.fonte in FONTES_CAMISA ? estadoSimulador.fonte : "Montserrat";
+  return `${FONTES_CAMISA[f]} ${px}px '${f}', sans-serif`;
+}
+
+// Mostra a cor ativa no banner e sincroniza o campo de cor livre (hex).
+function mostrarCorAtiva(hex) {
+  const prev = document.getElementById("currentColorPreview");
+  if (prev) prev.style.backgroundColor = hex;
+  const h = String(hex).toUpperCase();
+  const txt = document.getElementById("inputCorHex");
+  const pick = document.getElementById("inputCorPicker");
+  if (txt && document.activeElement !== txt) txt.value = h;
+  if (pick && /^#[0-9A-F]{6}$/.test(h)) pick.value = h.toLowerCase();
+}
+
+// Aplica uma cor livre (#RRGGBB) na parte ativa do uniforme.
+function aplicarCorLivre(hex) {
+  const h = String(hex).trim().toUpperCase();
+  if (!/^#[0-9A-F]{6}$/.test(h)) return false;
+  estadoSimulador.cores[estadoSimulador.parteAtiva] = { nome: h, hex: h };
+  document.querySelectorAll(".swatch-item").forEach((el) => el.classList.remove("active"));
+  document.getElementById("currentColorName").innerText = h;
+  mostrarCorAtiva(h);
+  updateSummaryLabels();
+  updateAllTextures();
+  return true;
+}
+
+function initCorLivre() {
+  const txt = document.getElementById("inputCorHex");
+  const pick = document.getElementById("inputCorPicker");
+  if (pick) pick.addEventListener("input", (e) => { if (txt) txt.value = e.target.value.toUpperCase(); aplicarCorLivre(e.target.value); });
+  if (txt) {
+    txt.addEventListener("input", (e) => {
+      let v = e.target.value.trim();
+      if (v && v[0] !== "#") v = "#" + v;
+      txt.classList.toggle("invalido", v.length === 7 && !aplicarCorLivre(v));
+    });
+    txt.addEventListener("blur", () => { txt.classList.remove("invalido"); mostrarCorAtiva(estadoSimulador.cores[estadoSimulador.parteAtiva].hex); });
+  }
+}
+
+function initFontes() {
+  document.querySelectorAll(".fonte-btn").forEach((btn) => {
+    btn.setAttribute("role", "radio");
+    btn.setAttribute("aria-checked", String(btn.classList.contains("active")));
+    btn.addEventListener("click", async () => {
+      document.querySelectorAll(".fonte-btn").forEach((b) => { b.classList.remove("active"); b.setAttribute("aria-checked", "false"); });
+      btn.classList.add("active");
+      btn.setAttribute("aria-checked", "true");
+      estadoSimulador.fonte = btn.dataset.fonte;
+      // Garante a fonte carregada antes de redesenhar a textura.
+      try { if (document.fonts) await document.fonts.load(fonteCamisa(60)); } catch (e) {}
+      updateDynamicTexture();
+    });
+  });
+}
+
 function initColorSwatches() {
   const grid = document.getElementById("swatchesGrid");
   if (!grid) return;
@@ -1015,7 +1084,7 @@ function initColorSwatches() {
         hex: `#${cor.rgb}`
       };
 
-      document.getElementById("currentColorPreview").style.backgroundColor = `#${cor.rgb}`;
+      mostrarCorAtiva(`#${cor.rgb}`);
       document.getElementById("currentColorName").innerText = cor.nomeCor;
 
       updateSummaryLabels();
@@ -1053,7 +1122,7 @@ function applyPreset(index) {
   // Atualiza Banner de Cor Ativa
   const currentCor = estadoSimulador.cores[estadoSimulador.parteAtiva];
   if (currentCor) {
-    document.getElementById("currentColorPreview").style.backgroundColor = currentCor.hex;
+    mostrarCorAtiva(currentCor.hex);
     document.getElementById("currentColorName").innerText = currentCor.nome;
   }
 
@@ -1102,7 +1171,7 @@ function initDOMEvents() {
       document.getElementById("currentPartName").innerText = btn.innerText;
       const currentCor = estadoSimulador.cores[tag];
       if (currentCor) {
-        document.getElementById("currentColorPreview").style.backgroundColor = currentCor.hex;
+        mostrarCorAtiva(currentCor.hex);
         document.getElementById("currentColorName").innerText = currentCor.nome;
       }
       initColorSwatches();
@@ -1188,6 +1257,8 @@ function initDOMEvents() {
       const viewer = document.getElementById("viewerContainer");
       viewer.classList.toggle("studio-light", estadoSimulador.studioLight);
       document.getElementById("bgStateText").innerText = estadoSimulador.studioLight ? "Estúdio Claro" : "Estúdio Escuro";
+      document.getElementById("bgStateIcon").innerText = estadoSimulador.studioLight ? "light_mode" : "dark_mode";
+      btnStudio.title = estadoSimulador.studioLight ? "Estúdio claro (clique para escuro)" : "Estúdio escuro (clique para claro)";
     });
   }
 
@@ -1231,6 +1302,10 @@ function initDOMEvents() {
     estadoSimulador.autoRotate = !estadoSimulador.autoRotate;
     controls.autoRotate = estadoSimulador.autoRotate;
     document.getElementById("rotateStateText").innerText = `Auto Giro: ${estadoSimulador.autoRotate ? "ON" : "OFF"}`;
+    const btnRot = document.getElementById("btnToggleRotate");
+    btnRot.classList.toggle("active", estadoSimulador.autoRotate);
+    btnRot.setAttribute("aria-pressed", String(estadoSimulador.autoRotate));
+    btnRot.title = `Auto giro: ${estadoSimulador.autoRotate ? "ligado" : "desligado"}`;
   });
 
   document.getElementById("btnResetView").addEventListener("click", () => {
