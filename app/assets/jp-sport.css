@@ -218,38 +218,39 @@ strong { font-weight: 600; }
 .card-mod {
   position: relative; display: flex; flex-direction: column; justify-content: space-between;
   min-height: 460px; background: var(--navy); color: var(--branco); overflow: hidden;
-  transition: transform .6s var(--ease-out);
+  transition: transform 200ms var(--ease-out);
 }
-.card-mod:hover { transform: translateY(-8px); }
-.card-mod .quadra { opacity: .2; transition: opacity .6s, transform 1.2s var(--ease-out); }
-.card-mod:hover .quadra { opacity: .34; transform: scale(1.06); }
+.card-mod:active { transform: translateY(-2px) scale(.985); transition-duration: 120ms; }
+.card-mod .quadra { opacity: .2; transition: opacity 200ms ease; }
 .card-mod .topo { display: flex; justify-content: space-between; align-items: flex-start; padding: 22px; position: relative; }
-.card-mod .vazado { font-size: 92px; opacity: .55; transition: opacity .4s, transform .6s var(--ease-out); }
-.card-mod:hover .vazado { opacity: 1; transform: translateY(-4px); }
-.card-mod .foto { position: absolute; inset: 70px 0 64px; display: grid; place-items: center; }
-.card-mod .foto img { height: 100%; object-fit: contain; filter: drop-shadow(0 28px 30px rgba(0,0,0,.45)); transition: transform .8s var(--ease-out); }
-.card-mod:hover .foto img { transform: scale(1.06) rotate(-1.5deg); }
+.card-mod .vazado { font-size: 92px; opacity: .55; transition: opacity 200ms ease; }
 .card-mod .barra {
   position: relative; display: flex; justify-content: space-between; align-items: center;
   background: var(--off); color: var(--navy); padding: 18px 22px;
   font-family: var(--f-titulo); font-size: 26px; text-transform: uppercase; line-height: 1;
-  transition: background .4s, color .4s;
+  transition: background 150ms ease, color 150ms ease;
 }
-.card-mod .barra .seta { font-family: var(--f-texto); font-size: 22px; transition: transform .45s var(--ease-out); }
-.card-mod:hover .barra { background: var(--eletrico); color: var(--branco); }
-.card-mod:hover .barra .seta { transform: rotate(-45deg); }
+.card-mod .barra .seta { font-family: var(--f-texto); font-size: 22px; transition: transform 200ms var(--ease-out); }
 
 /* ---- Ícones de modalidade (assets/icones-modalidades.js) ---- */
 .icone-mod { display: inline-block; flex: none; line-height: 0; }
 .icone-mod svg { width: 100%; height: 100%; display: block; }
 /* Card só com o ícone, centralizado; no hover o ícone sai e entra o 3D (js/cards3d.js) */
-.card-mod .icone-mod { position: absolute; left: 50%; top: 46%; width: 128px; height: 128px; margin: -64px 0 0 -64px; filter: drop-shadow(0 18px 24px rgba(0,0,0,.45)); transition: transform .6s var(--ease-out), opacity .45s; z-index: 2; }
-.card-mod:hover .icone-mod { transform: rotate(-12deg) scale(1.06); }
-.card-mod.com-3d .icone-mod { opacity: 0; transform: scale(.7) rotate(-20deg); }
+.card-mod .icone-mod { position: absolute; left: 50%; top: 46%; width: 128px; height: 128px; margin: -64px 0 0 -64px; filter: drop-shadow(0 18px 24px rgba(0,0,0,.45)); transition: transform 250ms var(--ease-out), opacity 250ms var(--ease-out); z-index: 2; }
+.card-mod.com-3d .icone-mod { opacity: 0; transform: scale(.92); }
 .card-mod.carregando-3d .icone-mod { animation: icone-pulsa 1s ease-in-out infinite; }
 @keyframes icone-pulsa { 50% { transform: scale(.94); } }
-.card-mod .card-3d { position: absolute; inset: 70px 0 64px; z-index: 1; opacity: 0; transition: opacity .5s var(--ease-out); pointer-events: none; }
-.card-mod.com-3d .card-3d { opacity: 1; }
+.card-mod .card-3d { position: absolute; inset: 70px 0 64px; z-index: 1; opacity: 0; transform: scale(.97); transition: opacity 250ms var(--ease-out), transform 250ms var(--ease-out); pointer-events: none; }
+.card-mod.com-3d .card-3d { opacity: 1; transform: none; }
+.card-mod .card-3d img.congelado { display: block; width: 100%; height: 100%; }
+/* Hover só onde existe mouse: no toque o estado "gruda" depois do toque */
+@media (hover: hover) and (pointer: fine) {
+  .card-mod:hover { transform: translateY(-4px); }
+  .card-mod:hover .quadra { opacity: .34; }
+  .card-mod:hover .vazado { opacity: 1; }
+  .card-mod:hover .barra { background: var(--eletrico); color: var(--branco); }
+  .card-mod:hover .barra .seta { transform: rotate(-45deg); }
+}
 .card-mod .card-3d canvas { display: block; width: 100% !important; height: 100% !important; }
 /* Cabeçalho transparente sobre o banner dividido: fundo claro translúcido para o menu não sumir no lado escuro */
 .jp-header:not(.solido):not(.escuro) { background: rgba(242, 242, 242, 0.9); backdrop-filter: blur(10px); }

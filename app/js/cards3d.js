@@ -20,7 +20,8 @@
   const matBase = new THREE.MeshStandardMaterial({ color: cor(0x3a4152), roughness: 0.7, metalness: 0.02, side: THREE.DoubleSide });
   const matDet = new THREE.MeshStandardMaterial({ color: cor(0x2f5bff), roughness: 0.55, metalness: 0.02, side: THREE.DoubleSide });
 
-  let renderer, scene, camera, grupo, ativo = null, rotY = -0.4, raf = 0;
+  let renderer, scene, camera, grupo, ativo = null, rotY = -0.4, raf = 0, chaveAtiva = null;
+  const angulos = {};  // url|modo -> último ângulo, para o modelo continuar de onde parou
   const textos = {};   // url -> Promise<string> (texto do OBJ)
   const modelos = {};  // url|modo -> THREE.Object3D pronto
 
@@ -66,6 +67,7 @@
   function loop() {
     raf = requestAnimationFrame(loop);
     if (!reduz) rotY += 0.012;
+    if (chaveAtiva) angulos[chaveAtiva] = rotY;
     grupo.rotation.set(0.05, rotY, 0);
     renderer.render(scene, camera);
   }
@@ -74,19 +76,36 @@
     if (!renderer) iniciar();
     ativo = slot;
     const card = slot.closest(".card-mod") || slot.parentElement;
-    card.classList.add("carregando-3d");
+    // a pulsação de carregamento só aparece se o modelo demorar (cache costuma ser instantâneo)
+    const aviso = setTimeout(() => card.classList.add("carregando-3d"), 150);
+    const chave = slot.dataset.modelo + "|" + (slot.dataset.modo || "tudo");
     let obj;
     try { obj = await modelo(slot.dataset.modelo, slot.dataset.modo || "tudo"); }
-    catch (e) { card.classList.remove("carregando-3d"); return; }   // sem 3D: fica o ícone
-    card.classList.remove("carregando-3d");
+    catch (e) { clearTimeout(aviso); card.classList.remove("carregando-3d"); return; }   // sem 3D: fica o ícone
+    clearTimeout(aviso); card.classList.remove("carregando-3d");
     if (ativo !== slot) return; // o mouse já saiu
+    congelar(slot);
+    slot.querySelectorAll("img.congelado").forEach((i) => i.remove());
     while (grupo.children.length) grupo.remove(grupo.children[0]);
-    grupo.add(obj); rotY = -0.4;
+    grupo.add(obj); chaveAtiva = chave; rotY = chave in angulos ? angulos[chave] : -0.4;
     const w = slot.clientWidth, h = slot.clientHeight;
     renderer.setSize(w, h); camera.aspect = w / h; camera.updateProjectionMatrix();
     slot.appendChild(renderer.domElement);
     card.classList.add("com-3d");
     if (!raf) loop();
+  }
+
+  // Antes de levar o renderer para outro card, deixa no card anterior um quadro parado,
+  // para que ele apague suavemente em vez de sumir de uma vez.
+  function congelar(destino) {
+    const cv = renderer.domElement, origem = cv.parentElement;
+    if (!origem || origem === destino || !grupo.children.length) return;
+    renderer.render(scene, camera);
+    const img = new Image();
+    img.className = "congelado"; img.alt = "";
+    img.src = cv.toDataURL();
+    origem.appendChild(img);
+    setTimeout(() => img.remove(), 400);
   }
 
   function sair(slot) {
