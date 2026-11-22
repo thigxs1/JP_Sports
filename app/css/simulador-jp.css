@@ -121,3 +121,85 @@
 .sim-jp .fonte-btn { padding: 12px 10px; font-size: 20px; line-height: 1; color: #fff; background: transparent; border: 1px solid var(--border); cursor: pointer; transition: border-color .25s, background .25s; }
 .sim-jp .fonte-btn:hover { border-color: rgba(255,255,255,.4); }
 .sim-jp .fonte-btn.active { border-color: var(--eletrico); background: rgba(47,91,255,.16); }
+
+/* =========================================================================
+   REBRANDING 2026 — simulador claro (ver design/rebranding-jp-2026.figcraft)
+   Palco claro por padrão, painel branco, cantos suaves, um botão principal.
+   ========================================================================= */
+.sim-jp {
+  --bg-dark: #F5F6F8; --bg-panel: #FFFFFF; --bg-card: #F5F6F8; --bg-hover: #EEF1F6;
+  --primary: #0F1F3D; --primary-hover: #1A2D52; --accent: #2F5BFF;
+  --text-main: #0A1630; --text-muted: #8A93A6; --border: #E4E7EC;
+  background: var(--bg-dark); color: var(--text-main);
+}
+.sim-jp *, .sim-jp *::before, .sim-jp *::after { border-radius: revert-layer !important; }
+.sim-jp .btn, .sim-jp .float-btn, .sim-jp .floating-controls, .sim-jp .btn-head.btn-ico,
+.sim-jp .studio-nav-arrow, .sim-jp .swatch-circle, .sim-jp .color-badge, .sim-jp .spinner { border-radius: 999px !important; }
+.sim-jp .kit-category-nav, .sim-jp .part-btn, .sim-jp .custom-input, .sim-jp .custom-select, .sim-jp .fonte-btn,
+.sim-jp .pattern-card, .sim-jp .input-card, .sim-jp .summary-card, .sim-jp .cor-livre input[type="color"] { border-radius: 12px !important; }
+.sim-jp .product-badge { border-radius: 16px !important; }
+
+/* header branco com hairline */
+.sim-jp .main-header { background: #fff; color: var(--ink); border-bottom: 1px solid var(--border); }
+.sim-jp .assinatura .nome { font-size: 17px; font-weight: 700; letter-spacing: .08em; }
+.sim-jp .kit-category-nav { border: 1px solid var(--border); padding: 4px; gap: 2px; background: #fff; }
+.sim-jp .cat-tab { color: var(--grafite); border-radius: 999px !important; padding: 8px 16px; }
+.sim-jp .cat-tab::after { display: none; }
+.sim-jp .cat-tab:hover { color: var(--ink); background: var(--bg-hover); }
+.sim-jp .cat-tab.active { background: var(--navy); color: #fff; }
+.sim-jp .cat-tab .icone-mod { filter: none; }
+.sim-jp .cat-tab:not(.active) .icone-mod { filter: invert(1) brightness(.35); }
+.sim-jp .btn-head.btn-ico { color: var(--grafite); border-color: var(--border); background: #fff; }
+.sim-jp .btn-head.btn-ico:hover { color: var(--ink); border-color: #C9D2E3; }
+.sim-jp .btn-head.btn-ico.active { color: #fff; background: var(--navy); border-color: var(--navy); }
+
+/* palco */
+.sim-jp .viewer-container.studio-light { background: radial-gradient(70% 70% at 50% 45%, #FFFFFF 0%, #EEF1F6 70%, #E4E8EF 100%); }
+.sim-jp .viewer-container.studio-light::before { opacity: .05; }
+.sim-jp .viewer-container.studio-light .product-badge { background: rgba(255,255,255,.86); border: 1px solid var(--border); border-left: 1px solid var(--border); color: var(--ink); }
+.sim-jp .viewer-container.studio-light .badge-rotulo { color: var(--cinza); font-family: var(--f-texto) !important; letter-spacing: .1em; font-size: 11px; }
+.sim-jp .badge-title { font-weight: 600; text-transform: none; font-size: 22px; letter-spacing: -.01em; }
+.sim-jp .viewer-container.studio-light .badge-sub { color: var(--grafite); }
+.sim-jp .viewer-container.studio-light .floating-controls { background: rgba(255,255,255,.92); border: 1px solid var(--border); box-shadow: 0 8px 24px rgba(10,22,48,.08); padding: 4px; }
+.sim-jp .viewer-container.studio-light .float-btn { color: var(--grafite); }
+.sim-jp .float-btn { font-family: var(--f-texto) !important; font-size: 13px; font-weight: 500; letter-spacing: 0; text-transform: none; transition: background-color 150ms var(--ease-out), color 150ms var(--ease-out); }
+.sim-jp .viewer-container.studio-light .float-btn.active, .sim-jp .float-btn.active { background: var(--navy); color: #fff; }
+.sim-jp .viewer-container.studio-light .divider { background: var(--border); }
+.sim-jp .viewer-container.studio-light .studio-nav-arrow { background: #fff; border: 1px solid var(--border); color: var(--ink); }
+.sim-jp .studio-nav-arrow { transition: background-color 150ms var(--ease-out), transform 120ms var(--ease-out); }
+@media (hover: hover) and (pointer: fine) { .sim-jp .studio-nav-arrow:hover { background: var(--off); transform: translateY(-50%); } }
+.sim-jp .viewer-container.studio-light .loading-overlay { background: rgba(245,246,248,.9); color: var(--ink); }
+.sim-jp .viewer-container.studio-light .spinner { border-color: var(--border); border-top-color: var(--navy); }
+
+/* painel */
+.sim-jp .sidebar-customizer { background: #fff; border-left: 1px solid var(--border); color: var(--ink); }
+.sim-jp .tabs-header { border-bottom: 1px solid var(--border); }
+.sim-jp .tab-btn { font-family: var(--f-texto) !important; font-size: 13px; font-weight: 500; letter-spacing: 0; text-transform: none; color: var(--cinza); }
+.sim-jp .tab-btn .material-icons { color: var(--cinza); }
+.sim-jp .tab-btn.active { color: var(--ink); border-bottom-color: var(--navy); }
+.sim-jp .tab-btn.active .material-icons { color: var(--navy); }
+.sim-jp .pane-header h2 { font-family: var(--f-titulo) !important; font-weight: 600; font-size: 24px; text-transform: none; letter-spacing: -.01em; line-height: 1.2; color: var(--ink); }
+.sim-jp .part-selector-group label, .sim-jp .input-card label, .sim-jp .cor-livre label { font-family: var(--f-texto) !important; font-size: 13px; font-weight: 600; letter-spacing: 0; text-transform: none; color: var(--ink) !important; }
+.sim-jp .part-btn { color: var(--grafite); border-color: var(--border); background: #fff; }
+.sim-jp .part-btn.active { background: var(--navy); border-color: var(--navy); color: #fff; }
+.sim-jp .swatch-item:hover { transform: none; }
+.sim-jp .swatch-item.active .swatch-circle { outline: 2px solid var(--navy); }
+.sim-jp .swatch-circle, .sim-jp .color-badge { box-shadow: inset 0 0 0 1px rgba(10,22,48,.12); }
+.sim-jp .current-selection-banner { color: var(--ink); }
+.sim-jp .current-selection-banner .active-part-name { color: var(--grafite); }
+.sim-jp .custom-input, .sim-jp .custom-select { background: var(--off); border: 1px solid transparent; color: var(--ink); }
+.sim-jp .custom-input:focus, .sim-jp .custom-select:focus { border-color: var(--navy); outline: none; background: #fff; }
+.sim-jp .input-card, .sim-jp .pattern-card { background: #fff; border: 1px solid var(--border); color: var(--ink); }
+.sim-jp .pattern-card.active { border-color: var(--navy); }
+.sim-jp .fonte-btn { color: var(--ink); border-color: var(--border); background: #fff; }
+.sim-jp .fonte-btn.active { border-color: var(--navy); background: #F0F3F9; }
+.sim-jp .cor-livre input[type="color"] { border-color: var(--border); }
+.sim-jp .summary-card { background: var(--off); border: 0; color: var(--ink); }
+
+/* entrada: curta e discreta */
+.sim-jp .sidebar-customizer { animation-duration: .4s; animation-delay: .1s; }
+.sim-jp .product-badge { animation-duration: .4s; animation-delay: .2s; }
+.sim-jp .floating-controls { animation-duration: .4s; animation-delay: .25s; }
+@keyframes entraDir { from { transform: translateX(12px); opacity: 0; } }
+@keyframes entraEsq { from { transform: translateX(-12px); opacity: 0; } }
+@keyframes sobeIn { from { transform: translate(-50%, 12px); opacity: 0; } to { transform: translate(-50%, 0); } }

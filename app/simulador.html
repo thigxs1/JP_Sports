@@ -43,8 +43,8 @@
       </nav>
 
       <div class="header-right">
-        <button class="btn-head btn-ico" id="btnToggleStudioBg" title="Estúdio escuro (clique para claro)" aria-label="Alternar fundo do estúdio">
-          <i class="material-icons" id="bgStateIcon">dark_mode</i><span id="bgStateText" class="sr-only">Estúdio Escuro</span>
+        <button class="btn-head btn-ico" id="btnToggleStudioBg" title="Estúdio claro (clique para escuro)" aria-label="Alternar fundo do estúdio">
+          <i class="material-icons" id="bgStateIcon">light_mode</i><span id="bgStateText" class="sr-only">Estúdio Claro</span>
         </button>
         <button class="btn-head btn-ico" id="btnResetView" title="Visão padrão" aria-label="Visão padrão">
           <i class="material-icons">filter_center_focus</i>
@@ -61,7 +61,7 @@
     <!-- Main Workspace -->
     <div class="workspace">
       <!-- Left Panel: 3D Canvas & Camera Overlay -->
-      <div class="viewer-container" id="viewerContainer">
+      <div class="viewer-container studio-light" id="viewerContainer">
         <!-- 3D WebGL Canvas Injection -->
         <canvas id="webglCanvas"></canvas>
 
