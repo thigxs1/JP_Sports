@@ -86,7 +86,7 @@ const estadoSimulador = {
   patrocinio: "",
   escudoImg: null,
   autoRotate: false,
-  studioLight: false,
+  studioLight: true,
   fonte: "Montserrat"
 };
 

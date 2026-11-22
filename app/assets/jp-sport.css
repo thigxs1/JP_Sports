@@ -3,7 +3,7 @@
    Navy manda. Elétrico pontua. Anton grita no título, Poppins explica,
    JetBrains Mono rotula. Cantos retos, linhas de quadra, números vazados.
    ========================================================================= */
-@import url("https://fonts.googleapis.com/css2?family=Anton&family=JetBrains+Mono:wght@400;500&family=Poppins:wght@400;600&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap");
 
 :root {
   --navy: #0F1F3D;
@@ -378,3 +378,90 @@ strong { font-weight: 600; }
   .barra-beneficios { gap: 18px; overflow: hidden; justify-content: flex-start; white-space: nowrap; }
   .tamanhos { grid-template-columns: repeat(3, 1fr); }
 }
+
+/* =========================================================================
+   REBRANDING 2026 — mais leve, mais limpo (ver design/rebranding-jp-2026.figcraft)
+   Montserrat SemiBold nos títulos, Inter no texto; botões em pílula sem
+   caixa alta; elétrico só como detalhe; motion curto (150–250ms).
+   ========================================================================= */
+:root {
+  --off: #F5F6F8; --grafite: #4A4F5C; --cinza: #8A93A6;
+  --linha-clara: #E4E7EC;
+  --f-titulo: "Montserrat", "Segoe UI", system-ui, sans-serif;
+  --f-texto: "Inter", "Segoe UI", system-ui, sans-serif;
+  --f-mono: "Inter", "Segoe UI", system-ui, sans-serif;
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+}
+body.jp { background: var(--branco); color: var(--ink); }
+.t-display, .t-h1, .t-h2, .t-h3 { font-weight: 600; text-transform: none; letter-spacing: -0.02em; line-height: 1.04; }
+.t-display { font-size: clamp(44px, 6vw, 80px); }
+.t-h1 { font-size: clamp(36px, 4.2vw, 56px); }
+.t-h2 { font-size: clamp(28px, 3vw, 40px); }
+.t-h3 { font-size: clamp(20px, 1.8vw, 24px); }
+.t-mono, .rotulo, .tag { font-weight: 500; letter-spacing: 0.1em; font-size: 12px; }
+.rotulo { color: var(--cinza); }
+.rotulo b { font-family: var(--f-texto); font-weight: 600; font-size: 12px; color: var(--eletrico); }
+.rotulo .traco { width: 20px; }
+.on-dark .rotulo b { color: #8FA6FF; }
+.tag { border-radius: 999px; border-color: rgba(255,255,255,.22); }
+
+/* Botões: pílula, sem sombra, sem varredura */
+.btn {
+  border-radius: 999px; padding: 15px 24px;
+  font-family: var(--f-texto); font-weight: 500; font-size: 15px;
+  letter-spacing: 0; text-transform: none; gap: 10px;
+  transition: background-color 150ms var(--ease-out), transform 120ms var(--ease-out);
+}
+.btn::after { display: none; }
+.btn .seta { color: #8FA6FF; transition: transform 150ms var(--ease-out); }
+.btn-acao { --bg: var(--navy); }
+.on-dark .btn-acao, .on-dark.btn-acao { --bg: var(--branco); --fg: var(--ink); }
+.on-dark .btn-acao .seta { color: var(--eletrico); }
+.btn-linha { background: transparent; border: 0; padding: 15px 4px; color: var(--ink); }
+.on-dark .btn-linha { color: var(--branco); }
+.btn:active { transform: scale(.98); }
+@media (hover: hover) and (pointer: fine) {
+  .btn:hover { background-color: color-mix(in srgb, var(--bg) 88%, white); }
+  .btn-linha:hover { background: transparent; }
+  .btn:hover .seta { transform: translateX(3px); }
+}
+.jp-header .btn { padding: 10px 18px; font-size: 14px; }
+
+/* Header e barra de topo mais discretos */
+.barra-beneficios { font-size: 12px; letter-spacing: .02em; text-transform: none; color: rgba(255,255,255,.7); }
+.barra-beneficios span::before { content: "·"; font-size: 14px; }
+.assinatura .simbolo { width: 40px; height: 40px; }
+.assinatura .nome { font-family: var(--f-titulo); font-weight: 700; font-size: 17px; letter-spacing: .08em; }
+.assinatura .mae { font-size: 10px; letter-spacing: .04em; text-transform: none; }
+.jp-nav a { font-family: var(--f-texto); font-weight: 500; font-size: 14px; letter-spacing: 0; text-transform: none; }
+.jp-nav a::after { height: 1px; transition-duration: 200ms; }
+
+/* Cards e superfícies com cantos suaves */
+.card-mod { border-radius: 20px; overflow: hidden; }
+.hero-vis { border-radius: 24px; overflow: hidden; }
+
+/* Novas seções do rebranding */
+.prova { display: flex; align-items: center; justify-content: space-between; gap: 40px; flex-wrap: wrap;
+  padding: 32px var(--gutter); background: var(--off); color: var(--grafite); font-size: 15px; }
+.prova-logos { display: flex; gap: 16px; flex-wrap: wrap; }
+.prova-logos span { padding: 12px 24px; border-radius: 10px; background: var(--branco); color: var(--cinza);
+  font-size: 11px; letter-spacing: .08em; text-transform: uppercase; }
+.placeholder { display: inline-block; padding: 4px 8px; border-radius: 6px; background: #FFF4D6; color: #8A6A12; font-size: 11px; font-weight: 500; }
+.marcas-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin: 48px 0 32px; }
+.marcas-grid article { padding: 32px; border: 1px solid var(--linha-clara); border-radius: 20px;
+  transition: transform 200ms var(--ease-out), border-color 200ms var(--ease-out); }
+.marcas-grid .num { font-family: var(--f-titulo); font-weight: 600; font-size: 44px; color: var(--navy); line-height: 1; letter-spacing: -.02em; }
+.marcas-grid h3 { margin: 14px 0 8px; font-size: 20px; }
+.marcas-grid p { margin: 0; color: var(--grafite); font-size: 15px; }
+@media (hover: hover) and (pointer: fine) { .marcas-grid article:hover { transform: translateY(-4px); border-color: #C9D2E3; } }
+.marcas-acoes { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
+@media (max-width: 900px) { .marcas-grid { grid-template-columns: 1fr; } }
+
+/* Entrada de seção mais curta */
+[data-reveal] { transition-duration: 400ms !important; }
+.jp .btn { color: var(--fg); white-space: nowrap; }
+.jp .btn-linha { color: var(--ink); }
+.jp .on-dark .btn-linha { color: var(--branco); }
+.jp-nav { gap: 28px; }
+.jp-nav a { white-space: nowrap; }
+@media (max-width: 1100px) { .jp-nav { display: none; } .menu-toggle { display: block; } }
