@@ -825,8 +825,8 @@ function drawPlayerDetails() {
   // 3. Patrocínio Frontal Master (Abaixo do peito: X=1605, Y=1285)
   if (estadoSimulador.patrocinio && estadoSimulador.patrocinio.trim() !== "") {
     textureCtx.fillStyle = estadoSimulador.cores.cor4.hex;
-    textureCtx.font = "800 58px 'Montserrat', sans-serif";
-    textureCtx.fillText(estadoSimulador.patrocinio.toUpperCase(), 1605, 1285);
+    escreveAjustado(textureCtx, estadoSimulador.patrocinio.toUpperCase(),
+      (px) => `800 ${px}px 'Montserrat', sans-serif`, 58, 440, 1605, 1285);
   }
 
   // 4. Etiqueta Autenticidade na Barra Inferior Direita (como na referência)
@@ -842,12 +842,10 @@ function drawPlayerDetails() {
   // 5. Nome e Número nas Costas (Painel Traseiro: centro em X=578, Y=980..1260)
   textureCtx.fillStyle = estadoSimulador.cores.cor5.hex;
   if (estadoSimulador.nome) {
-    textureCtx.font = fonteCamisa(62);
-    textureCtx.fillText(estadoSimulador.nome.toUpperCase(), 578, 965);
+    escreveAjustado(textureCtx, estadoSimulador.nome.toUpperCase(), fonteCamisa, 62, 440, 578, 965);
   }
   if (estadoSimulador.numero) {
-    textureCtx.font = fonteCamisa(260);
-    textureCtx.fillText(estadoSimulador.numero, 578, 1210);
+    escreveAjustado(textureCtx, estadoSimulador.numero, fonteCamisa, 260, 420, 578, 1210);
   }
 
   textureCtx.restore();
@@ -994,6 +992,15 @@ const FONTES_CAMISA = {
 function fonteCamisa(px) {
   const f = estadoSimulador.fonte in FONTES_CAMISA ? estadoSimulador.fonte : "Montserrat";
   return `${FONTES_CAMISA[f]} ${px}px '${f}', sans-serif`;
+}
+
+// Escreve o texto reduzindo a fonte até caber em `max` px (até 60% do tamanho);
+// se ainda não couber, o maxWidth do canvas comprime como último recurso.
+function escreveAjustado(ctx, texto, fonte, px, max, x, y) {
+  let t = px;
+  ctx.font = fonte(t);
+  while (t > px * 0.6 && ctx.measureText(texto).width > max) { t -= 2; ctx.font = fonte(t); }
+  ctx.fillText(texto, x, y, max);
 }
 
 // Mostra a cor ativa no banner e sincroniza o campo de cor livre (hex).
@@ -1204,6 +1211,7 @@ function initDOMEvents() {
 
   if (inputNumero) {
     inputNumero.addEventListener("input", (e) => {
+      e.target.value = e.target.value.replace(/\D/g, ""); // só dígitos
       estadoSimulador.numero = e.target.value;
       document.getElementById("summaryNumero").innerText = e.target.value;
       updateDynamicTexture();
