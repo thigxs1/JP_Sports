@@ -33,6 +33,20 @@
     .hero-vis .dica i { width: 26px; height: 1px; background: currentColor; display: inline-block; animation: vaivem 2.2s ease-in-out infinite; }
     @keyframes vaivem { 50% { transform: translateX(8px); } }
 
+    /* ---- Promoções (o card é repetido em css/operacao.css; manter iguais) ---- */
+    .promocoes-feed { padding-bottom: 0; }
+    .promocoes-feed[hidden] { display: none; }
+    .promocoes-topo { margin-bottom: 56px; }
+    .promocoes-lista { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr)); gap: 18px; }
+    .promo-card { display: flex; flex-direction: column; gap: 14px; min-width: 0; padding: 26px; background: var(--branco); border: 1px solid var(--linha-clara); border-top: 4px solid var(--eletrico); overflow-wrap: anywhere; }
+    .promo-card p, .promo-card h3 { margin: 0; }
+    .promo-topo { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 14px; }
+    .promo-modalidade, .promo-pe small { font: 400 12px/1.4 var(--f-mono); color: var(--grafite); }
+    .promo-desconto { font: 400 clamp(40px, 4.4vw, 64px)/1.05 var(--f-titulo); text-transform: uppercase; color: var(--eletrico); }
+    .promo-sub { font-size: 15px; color: var(--grafite); }
+    .promo-pe { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 18px; margin-top: auto; padding-top: 10px; }
+    .jp .promo-pe .btn { max-width: 100%; white-space: normal; color: var(--branco); }
+
     /* ---- Tecnologia ---- */
     .tec-topo { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: end; margin-bottom: 70px; }
     .seta-anim { display: inline-block; animation: sobe 1.8s var(--ease-out) infinite; }
@@ -136,6 +150,16 @@
         <div class="faixa-item">Futebol <span class="losango"></span><span class="vz">Basquete</span><span class="losango"></span>Vôlei <span class="losango"></span><span class="vz">Society</span><span class="losango"></span>Treino <span class="losango"></span><span class="vz">Seca rápido</span><span class="losango"></span></div>
       </div>
     </div>
+
+    <!-- PROMOÇÕES (exibida por js/feed-promocoes.js quando houver promoção válida) -->
+    <section class="secao promocoes-feed" id="promocoes" aria-labelledby="promocoes-titulo" hidden>
+      <div class="rotulo" data-reveal><b>Feed</b><span class="traco"></span>Promoções<span class="fio"></span></div>
+      <div class="grade-2 promocoes-topo">
+        <h2 class="t-h1" id="promocoes-titulo" data-titulo>Seu time<br>em <span class="t-eletrico">vantagem.</span></h2>
+        <p class="t-lead" data-reveal>Condições especiais para o seu uniforme. Escolha a oferta e peça o orçamento.</p>
+      </div>
+      <div class="promocoes-lista" id="promocoes-lista"></div>
+    </section>
 
     <!-- 02 · MODALIDADES -->
     <section class="secao" id="modalidades">
@@ -246,7 +270,7 @@
         <p style="max-width:34ch; margin-top:20px;">Da indústria para o campo. Qualidade que veste confiança.</p>
       </div>
       <div><h5>Modalidades</h5><a href="simulador.html?modalidade=futebol"><span data-icone="futebol"></span>Futebol</a><a href="simulador.html?modalidade=basquete"><span data-icone="basquete"></span>Basquete</a><a href="simulador.html?modalidade=volei"><span data-icone="volei"></span>Vôlei</a><a href="colecao.html"><span data-icone="kit"></span>Kits</a></div>
-      <div><h5>Loja</h5><a href="colecao.html">Coleção 26</a><a href="simulador.html">Simulador 3D</a><a href="orcamento.html">Orçamento</a><a href="referencia.html">Playbook da marca</a></div>
+      <div><h5>Loja</h5><a href="colecao.html">Coleção 26</a><a href="simulador.html">Simulador 3D</a><a href="orcamento.html">Orçamento</a><a href="referencia.html">Playbook da marca</a><a href="operacao.html">Painel de Operação</a></div>
       <div><h5>Tecido</h5><a href="#">Dry</a><a href="#">Respirável</a><a href="#">Flexível</a><a href="#">Durável</a></div>
     </div>
     <div class="linha-final"><span>© <span data-ano></span> JP Produção Têxtil</span><span>Qualidade que veste confiança.</span></div>
@@ -259,5 +283,8 @@
   <script src="js/cards3d.js"></script>
   <script src="assets/icones-modalidades.js"></script>
   <script src="assets/jp-sport.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+  <script src="assets/supabase-config.js"></script>
+  <script src="js/feed-promocoes.js"></script>
 </body>
 </html>
