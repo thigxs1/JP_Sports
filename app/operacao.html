@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Operação · JP Sport</title>
+  <link rel="icon" href="assets/logo-jp-provisorio.svg">
+  <link rel="stylesheet" href="assets/jp-sport.css">
+  <link rel="stylesheet" href="css/operacao.css">
+</head>
+<body class="jp op">
+
+  <main id="tela-login" class="op-login" hidden>
+    <div class="op-login-caixa">
+      <a href="index.html" class="assinatura" aria-label="JP Sport · início">
+        <img class="simbolo" src="assets/logo-jp-provisorio.svg" alt="">
+        <span class="nome">JP SPORT</span>
+      </a>
+      <h1 class="t-h3">Painel de operação</h1>
+      <form id="form-login">
+        <div class="campo"><label for="login-email">E-mail</label><input id="login-email" type="email" autocomplete="username" required></div>
+        <div class="campo"><label for="login-senha">Senha</label><input id="login-senha" type="password" autocomplete="current-password" required></div>
+        <p id="login-erro" class="op-erro" role="alert"></p>
+        <button class="btn btn-acao" type="submit">Entrar</button>
+      </form>
+      <section class="op-demo" aria-labelledby="demo-titulo">
+        <h2 id="demo-titulo">Acesso rápido de protótipo</h2>
+        <p id="login-modo" class="op-modo-info"></p>
+        <div class="op-demo-botoes">
+          <button type="button" class="op-btn" data-demo="admin">Entrar como Admin Global</button>
+          <button type="button" class="op-btn" data-demo="operacao">Entrar como Operação</button>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <div id="tela-painel" hidden>
+    <header class="op-topo">
+      <a href="index.html" class="assinatura" aria-label="JP Sport · início">
+        <img class="simbolo" src="assets/logo-jp-provisorio.svg" alt="">
+        <span class="nome">Operação</span>
+      </a>
+      <div class="op-usuario">
+        <div class="op-identidade"><strong id="usuario-nome"></strong><span id="usuario-email"></span></div>
+        <span id="usuario-cargo" class="op-badge"></span>
+        <span id="usuario-modo" class="op-badge op-badge-modo"></span>
+        <button id="btn-sair" type="button" class="op-btn op-btn-escuro">Sair</button>
+      </div>
+    </header>
+
+    <nav class="op-abas" aria-label="Seções do painel">
+      <button type="button" data-aba="pedidos">Pedidos &amp; Molde Técnico</button>
+      <button type="button" data-aba="promocoes">Promoções do Feed</button>
+      <button type="button" data-aba="usuarios" hidden>Usuários</button>
+    </nav>
+
+    <main class="op-conteudo">
+      <section id="tab-pedidos" class="op-tab" aria-label="Pedidos e molde técnico">
+        <div class="op-pedidos">
+          <div class="op-coluna-lista">
+            <div class="op-filtros">
+              <div class="campo">
+                <label for="filtro-status">Status</label>
+                <select id="filtro-status">
+                  <option value="todos">Todos</option>
+                  <option value="novo">Novo</option>
+                  <option value="em_producao">Em produção</option>
+                  <option value="finalizado">Finalizado</option>
+                  <option value="cancelado">Cancelado</option>
+                </select>
+              </div>
+              <div class="campo">
+                <label for="filtro-modalidade">Modalidade</label>
+                <select id="filtro-modalidade">
+                  <option value="todas">Todas</option>
+                  <option value="futebol">Futebol</option>
+                  <option value="basquete">Basquete</option>
+                  <option value="volei">Vôlei</option>
+                </select>
+              </div>
+            </div>
+            <div class="op-lista-topo">
+              <span id="pedidos-contagem" role="status"></span>
+              <button id="btn-recarregar" type="button" class="op-btn">Atualizar lista</button>
+            </div>
+            <p id="pedidos-aviso" class="op-erro" role="alert"></p>
+            <div id="lista-pedidos" class="op-lista"></div>
+          </div>
+          <section id="inspetor" class="op-inspetor" aria-label="Detalhes do pedido" tabindex="-1"></section>
+        </div>
+      </section>
+
+      <!-- Conteúdo montado por js/operacao.js ao abrir a aba -->
+      <section id="tab-promocoes" class="op-tab" aria-labelledby="promocoes-titulo" hidden>
+        <h2 id="promocoes-titulo" class="t-h3">Promoções do feed</h2>
+        <div id="promocoes-conteudo"></div>
+      </section>
+
+      <!-- Conteúdo montado por js/operacao.js ao abrir a aba (só admin_global) -->
+      <section id="tab-usuarios" class="op-tab" aria-labelledby="usuarios-titulo" hidden>
+        <h2 id="usuarios-titulo" class="t-h3">Usuários</h2>
+        <div id="usuarios-conteudo"></div>
+      </section>
+    </main>
+  </div>
+
+  <div id="area-impressao"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4"></script>
+  <script src="assets/supabase-config.js"></script>
+  <script src="js/molde-matricial.js"></script>
+  <script src="js/feed-promocoes.js"></script>
+  <script src="js/operacao.js"></script>
+</body>
+</html>
