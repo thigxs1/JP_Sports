@@ -174,3 +174,11 @@ body.op { font-family: var(--f-corpo); font-size: 15px; line-height: 1.5; }
   .resumo-corte th, .resumo-corte td { padding: 1mm; border: 1px solid #000000; text-align: center; }
   .resumo-corte p { margin: 2mm 0 0; }
 }
+
+/* Pacote de impressão e perfil da plotter */
+.op-acoes-pacote { margin-top: 12px; }
+.op-bloqueado { color: var(--grafite); }
+.op-perfil { margin: 8px 0 12px; border: 1px solid var(--linha-clara, #dfe3ea); padding: 8px 12px; background: #fff; }
+.op-perfil summary { cursor: pointer; font-weight: 600; }
+.op-perfil-campos { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 8px 12px; margin-top: 10px; }
+.op-perfil-campos .op-check, .op-perfil-campos .op-acoes, .op-perfil-campos .op-aviso { grid-column: 1 / -1; }

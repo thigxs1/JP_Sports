@@ -40,6 +40,16 @@
     .enviado.ativo { opacity: 1; pointer-events: auto; }
     .enviado .t-display { font-size: clamp(60px, 9vw, 140px); }
     @media (max-width: 960px) { .orc { grid-template-columns: 1fr; } .orc-resumo { position: relative; height: auto; } .linha2, .mods { grid-template-columns: 1fr; } }
+    .atl-ajuda { font-size: 13px; color: var(--grafite); margin: 0; }
+    .atl-linha { display: grid; grid-template-columns: 1fr 80px 110px 40px; gap: 8px; align-items: end; margin-bottom: 8px; }
+    .atl-linha input, .atl-linha select { width: 100%; }
+    .atl-linha.invalida input, .atl-linha.invalida select { outline: 1px solid #C8102E; }
+    .atl-remover { height: 40px; border: 1px solid var(--linha-clara); background: #fff; cursor: pointer; font-size: 18px; }
+    .atl-acoes { display: flex; gap: 10px; flex-wrap: wrap; }
+    .atl-acoes button, #atlImportar { font: 500 13px var(--f-texto); padding: 8px 14px; border: 1px solid var(--navy); background: #fff; color: var(--navy); cursor: pointer; }
+    #atlTexto { width: 100%; font-family: var(--f-mono); }
+    .atl-msg { font-size: 13px; color: #C8102E; min-height: 1em; margin: 4px 0 0; white-space: pre-line; }
+    .tamanhos input[readonly] { background: var(--off); color: var(--grafite); }
   </style>
 </head>
 <body class="jp">
@@ -88,7 +98,24 @@
           <div class="campo"><label for="q-inf">Infantil</label><input id="q-inf" type="number" min="0" value="0" inputmode="numeric"></div>
         </div>
 
-        <div class="bloco-titulo" data-reveal><b>03</b> Seu time</div>
+        <div class="bloco-titulo" data-reveal><b>03</b> Atletas</div>
+        <div data-reveal>
+          <p class="atl-ajuda">Opcional: nome, número e tamanho de cada camisa. Com a lista, a grade acima é calculada sozinha.</p>
+          <div id="atletas" style="margin-top:10px"></div>
+          <div class="atl-acoes">
+            <button type="button" id="atlAdd">+ Adicionar atleta</button>
+            <button type="button" id="atlColarBtn" aria-expanded="false" aria-controls="atlColar">Colar lista</button>
+          </div>
+          <div id="atlColar" hidden style="margin-top:10px">
+            <label for="atlTexto" class="atl-ajuda">Uma linha por atleta: nome; número; tamanho (ex.: SILVA; 10; M)</label>
+            <textarea id="atlTexto" rows="5"></textarea>
+            <button type="button" id="atlImportar">Importar lista</button>
+            <p id="atlErros" class="atl-msg" role="status"></p>
+          </div>
+          <p id="atlAvisos" class="atl-msg" role="status"></p>
+        </div>
+
+        <div class="bloco-titulo" data-reveal><b>04</b> Seu time</div>
         <div class="linha2" data-reveal>
           <div class="campo"><label for="time">Nome do time</label><input id="time" required placeholder="Ex.: Unidos da Vila"></div>
           <div class="campo"><label for="cidade">Cidade / UF</label><input id="cidade" placeholder="Ex.: Goiânia / GO"></div>
@@ -133,6 +160,7 @@
   <script src="assets/supabase-config.js"></script>
   <script src="assets/icones-modalidades.js"></script>
   <script src="assets/jp-sport.js"></script>
+  <script src="js/atletas.js"></script>
   <script>
     const P = JP_CONFIG.precos;
     const fmt = (v) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -188,6 +216,79 @@
       };
       requestAnimationFrame(passo);
     }
+    /* ---------- Atletas ---------- */
+    let atletas = []; // { nome, numero, tamanho } como digitado
+    const listaAtl = document.getElementById("atletas");
+    const TAM_ID = { P: "q-p", M: "q-m", G: "q-g", GG: "q-gg", XG: "q-xg", Infantil: "q-inf" };
+    function el(tag, props) { return Object.assign(document.createElement(tag), props || {}); }
+    function renderAtletas() {
+      listaAtl.textContent = "";
+      atletas.forEach((a, i) => {
+        const linha = el("div", { className: "atl-linha" });
+        const r = JPAtletas.normalizarAtleta(a);
+        if (!r.ok) linha.classList.add("invalida");
+        const campo = (rotulo, controle) => {
+          const c = el("div", { className: "campo" });
+          const id = "atl-" + rotulo.toLowerCase() + "-" + i;
+          controle.id = id;
+          c.append(el("label", { htmlFor: id, textContent: rotulo }), controle);
+          return c;
+        };
+        const nome = el("input", { value: a.nome || "", maxLength: 15, autocomplete: "off" });
+        const numero = el("input", { value: a.numero || "", maxLength: 3, inputMode: "numeric" });
+        const tamanho = el("select");
+        JPAtletas.TAMANHOS.forEach((t) => tamanho.append(el("option", { value: t, textContent: t, selected: a.tamanho === t })));
+        const remover = el("button", { type: "button", className: "atl-remover", textContent: "×" });
+        remover.setAttribute("aria-label", "Remover atleta " + (i + 1));
+        nome.addEventListener("input", () => { a.nome = nome.value; sincronizar(false); });
+        numero.addEventListener("input", () => { a.numero = numero.value; sincronizar(false); });
+        tamanho.addEventListener("change", () => { a.tamanho = tamanho.value; sincronizar(false); });
+        remover.addEventListener("click", () => { atletas.splice(i, 1); sincronizar(true); });
+        linha.append(campo("Nome", nome), campo("Número", numero), campo("Tamanho", tamanho), remover);
+        listaAtl.append(linha);
+      });
+    }
+    function atletasValidos() {
+      return atletas.map((a) => JPAtletas.normalizarAtleta(a)).filter((r) => r.ok).map((r) => r.atleta);
+    }
+    function sincronizar(redesenhar) {
+      if (redesenhar) renderAtletas();
+      else listaAtl.querySelectorAll(".atl-linha").forEach((l, i) => l.classList.toggle("invalida", !JPAtletas.normalizarAtleta(atletas[i]).ok));
+      const comLista = atletas.length > 0;
+      const grade = JPAtletas.gradeDeAtletas(atletasValidos());
+      Object.keys(TAM_ID).forEach((t) => {
+        const campo = document.getElementById(TAM_ID[t]);
+        campo.readOnly = comLista;
+        if (comLista) campo.value = grade[t];
+      });
+      document.getElementById("atlAvisos").textContent = JPAtletas.avisos(atletasValidos()).join("\n");
+      atualizar();
+    }
+    document.getElementById("atlAdd").addEventListener("click", () => {
+      if (atletas.length >= JPAtletas.LIMITE) { document.getElementById("atlAvisos").textContent = "Limite de " + JPAtletas.LIMITE + " atletas por pedido."; return; }
+      const primeiro = !atletas.length && projeto;
+      atletas.push({ nome: primeiro ? projeto.nome || "" : "", numero: primeiro ? projeto.numero || "" : "", tamanho: "M" });
+      sincronizar(true);
+      const nomes = listaAtl.querySelectorAll(".atl-linha input");
+      if (nomes.length) nomes[nomes.length - 2].focus();
+    });
+    document.getElementById("atlColarBtn").addEventListener("click", (e) => {
+      const caixa = document.getElementById("atlColar");
+      caixa.hidden = !caixa.hidden;
+      e.currentTarget.setAttribute("aria-expanded", String(!caixa.hidden));
+      if (!caixa.hidden) document.getElementById("atlTexto").focus();
+    });
+    document.getElementById("atlImportar").addEventListener("click", () => {
+      const r = JPAtletas.lerColado(document.getElementById("atlTexto").value);
+      const espaco = JPAtletas.LIMITE - atletas.length;
+      atletas = atletas.concat(r.atletas.slice(0, Math.max(0, espaco)));
+      const erros = r.erros.map((x) => "Linha " + x.linha + ": " + x.motivo);
+      if (r.atletas.length > espaco) erros.push("Limite de " + JPAtletas.LIMITE + " atletas: " + (r.atletas.length - espaco) + " não entraram.");
+      document.getElementById("atlErros").textContent = erros.length ? erros.join("\n") : r.atletas.length + " atleta(s) importado(s).";
+      if (!r.erros.length) document.getElementById("atlTexto").value = "";
+      sincronizar(true);
+    });
+
     document.getElementById("formOrc").addEventListener("input", atualizar);
     atualizar();
 
@@ -197,6 +298,8 @@
       const time = document.getElementById("time").value.trim();
       const nome = document.getElementById("nome").value.trim();
       if (!time || !nome) { erro.textContent = "Preencha o nome do time e o seu nome."; return; }
+      const ruim = atletas.map((a) => JPAtletas.normalizarAtleta(a)).findIndex((r) => !r.ok);
+      if (ruim >= 0) { erro.textContent = "Atleta " + (ruim + 1) + ": " + JPAtletas.normalizarAtleta(atletas[ruim]).erro + "."; return; }
       if (qtd() === 0) { erro.textContent = "Informe ao menos um tamanho."; return; }
       erro.textContent = "";
       const grade = qtdIds.map((id) => `${document.querySelector(`label[for="${id}"]`).textContent}: ${document.getElementById(id).value || 0}`).join(" · ");
@@ -208,6 +311,7 @@
         `Grade: ${grade} (total ${qtd()})`,
         projeto ? `Projeto 3D: ${GOLAS[projeto.gola] || projeto.gola}, ${projeto.cores.cor1.nome}/${projeto.cores.cor3.nome}, estampa ${projeto.estampa}` : "",
         document.getElementById("prazo").value ? `Prazo: ${document.getElementById("prazo").value}` : "",
+        atletas.length ? `Atletas: ${atletas.length} (lista anexada no pedido)` : "",
         document.getElementById("obs").value ? `Obs.: ${document.getElementById("obs").value}` : ""
       ].filter(Boolean).join("\n");
       // registra o pedido no Supabase (sem bloquear o WhatsApp)
@@ -221,7 +325,8 @@
           estimativa: (P[mod()] + (kit ? P.calcao + P.meiao : 0)) * qtd(),
           prazo: document.getElementById("prazo").value || null,
           observacoes: document.getElementById("obs").value || null,
-          projeto_3d: projeto
+          projeto_3d: projeto,
+          atletas: atletas.length ? atletasValidos() : null
         });
       }
       document.getElementById("enviado").classList.add("ativo");

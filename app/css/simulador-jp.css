@@ -203,3 +203,20 @@
 @keyframes entraDir { from { transform: translateX(12px); opacity: 0; } }
 @keyframes entraEsq { from { transform: translateX(-12px); opacity: 0; } }
 @keyframes sobeIn { from { transform: translate(-50%, 12px); opacity: 0; } to { transform: translate(-50%, 0); } }
+/* posicionamento livre da arte (js/editor-posicao.js) */
+.sim-jp .pos-ajuda { font-size: 12px; color: var(--grafite); margin: 4px 0 8px; }
+.sim-jp .pos-elementos { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+.sim-jp .pos-el { font: 500 12px var(--f-texto); padding: 6px 10px; border: 1px solid var(--border); background: #fff; color: var(--ink); cursor: pointer; }
+.sim-jp .pos-el.active { background: var(--navy); border-color: var(--navy); color: #fff; }
+.sim-jp .pos-svg { width: 100%; max-height: 340px; background: var(--off); touch-action: none; cursor: grab; display: block; }
+.sim-jp .pos-svg:focus-visible { outline: 2px solid var(--eletrico); outline-offset: 2px; }
+.sim-jp .pos-contorno { fill: #fff; stroke: var(--navy); stroke-width: 2; }
+.sim-jp .pos-peca { font: 600 16px var(--f-texto); fill: var(--cinza); }
+.sim-jp .pos-item rect { fill: rgba(47, 91, 255, .12); stroke: var(--cinza); stroke-width: 2; stroke-dasharray: 6 4; }
+.sim-jp .pos-item text { font: 600 26px var(--f-texto); fill: var(--grafite); pointer-events: none; }
+.sim-jp .pos-item.ativo rect { fill: rgba(47, 91, 255, .25); stroke: var(--eletrico); stroke-dasharray: none; }
+.sim-jp .pos-item.ruim rect { stroke: #C8102E; }
+.sim-jp .pos-tamanho { display: grid; gap: 4px; margin-top: 10px; }
+.sim-jp .pos-tamanho input { width: 100%; accent-color: var(--navy); }
+.sim-jp .pos-aviso { min-height: 1em; font-size: 12px; color: #C8102E; margin: 6px 0; }
+.sim-jp .pos-reset { font: 500 12px var(--f-texto); padding: 6px 10px; border: 1px solid var(--border); background: #fff; color: var(--ink); cursor: pointer; }

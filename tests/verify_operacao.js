@@ -28,6 +28,12 @@ teste('schema.sql: status, tabelas, funções e RLS', () => {
   });
   assert.match(sql, /create policy "admin gerencia perfis" on public\.perfis\s+for all to authenticated\s+using \(public\.is_admin_global\(\)\) with check \(public\.is_admin_global\(\)\)/i);
 });
+teste('schema.sql: coluna atletas com limite de 200', () => {
+  const sql = ler('docs/supabase/schema.sql');
+  assert.match(sql, /alter table public\.orcamentos add column if not exists atletas jsonb/i);
+  assert.match(sql, /drop constraint if exists orcamentos_atletas_check/i);
+  assert.match(sql, /add constraint orcamentos_atletas_check check \(atletas is null or \(jsonb_typeof\(atletas\) = 'array' and jsonb_array_length\(atletas\) <= 200\)\)/i);
+});
 teste('index.html: feed de promoções e link do painel', () => {
   const html = ler('app/index.html');
   assert.match(html, /<section[^>]*\sid="promocoes"/);
@@ -111,9 +117,19 @@ async function painel(email, senha, preparar) {
     dispatchEvent(e) { doc.disparar(e.type, e); }
   });
   doc.activeElement = doc.body;
-  const window = { localStorage: { getItem: (k) => (k in armazem ? armazem[k] : null), setItem(k, v) { armazem[k] = String(v); } } };
+  const window = {
+    localStorage: { getItem: (k) => (k in armazem ? armazem[k] : null), setItem(k, v) { armazem[k] = String(v); } },
+    matchMedia: () => ({ matches: false })
+  };
+  // fetch de arquivos estáticos de app/ (índice e moldes)
+  const fetch = async (url) => {
+    const arq = path.join(RAIZ, 'app', String(url).split('?')[0]);
+    if (!fs.existsSync(arq)) return { ok: false, status: 404, json: async () => null };
+    return { ok: true, status: 200, json: async () => JSON.parse(fs.readFileSync(arq, 'utf8')) };
+  };
+  window.fetch = fetch;
   const ctx = vm.createContext({
-    window, document: doc, console,
+    window, document: doc, console, fetch,
     CustomEvent: class { constructor(type, o) { this.type = type; this.detail = o.detail; } }
   });
   const carregar = (a) => vm.runInContext(ler(a), ctx, { filename: a });
@@ -121,12 +137,15 @@ async function painel(email, senha, preparar) {
   ctx.JP_DB = window.JP_DB;
   carregar('app/js/molde-matricial.js');
   carregar('app/js/feed-promocoes.js');
+  carregar('app/js/arte-pecas.js');
+  carregar('app/js/pdf-fontes.js');
+  carregar('app/js/pacote-impressao.js');
   assert.ok((await window.JP_DB.login(email, senha)).ok);
   if (preparar) preparar(armazem);
   carregar('app/js/operacao.js');
   await esperar();
   return {
-    el, db: window.JP_DB,
+    el, db: window.JP_DB, armazem,
     async abrir() {
       seletores['.op-abas'].disparar('click', { target: { closest: () => ({ dataset: { aba: 'usuarios' } }) } });
       await esperar();
@@ -140,6 +159,10 @@ async function painel(email, senha, preparar) {
       el('usuario-form-email').value = mail;
       el('usuario-form-senha').value = pass;
       el('form-usuario').disparar('submit');
+      await esperar();
+    },
+    async selecionar(id) {
+      el('lista-pedidos').disparar('click', { target: { closest: () => ({ dataset: { id } }) } });
       await esperar();
     },
     async alternar(id) {
@@ -266,6 +289,102 @@ teste('usuários: sair limpa a aba e descarta listagem em trânsito', async () =
   responder({ ok: true, dados: [local({ nome: 'Vazou' })], modo: 'local' });
   await esperar();
   assert.ok(!p.el('usuario-lista').innerHTML.includes('Vazou'));
+});
+
+/* ---------- JP_DB.salvar com Supabase sem a coluna atletas ---------- */
+function dbComSupabaseFalso(semColuna) {
+  const inserts = [];
+  const cliente = {
+    auth: { getSession: async () => ({ data: { session: null } }) },
+    from: () => ({
+      insert: async (dados) => {
+        inserts.push(JSON.parse(JSON.stringify(dados)));
+        if (semColuna && Object.prototype.hasOwnProperty.call(dados, 'atletas')) {
+          return { error: { code: 'PGRST204', message: "Could not find the 'atletas' column of 'orcamentos' in the schema cache" } };
+        }
+        return { error: null };
+      }
+    })
+  };
+  const armazem = {};
+  const window = {
+    localStorage: { getItem: (k) => (k in armazem ? armazem[k] : null), setItem(k, v) { armazem[k] = String(v); } },
+    supabase: { createClient: () => cliente }
+  };
+  const ctx = vm.createContext({ window, console: { warn() {}, log() {}, error() {} } });
+  vm.runInContext(ler('app/assets/supabase-config.js'), ctx);
+  return { db: window.JP_DB, inserts };
+}
+const ORC = { time: 'T', responsavel: 'R', modalidade: 'futebol', kit_completo: false, grade: { M: 1 }, total_pecas: 1 };
+teste('salvar: sem lista de atletas não envia o campo', async () => {
+  const { db, inserts } = dbComSupabaseFalso(true);
+  const r = await db.salvar('orcamentos', Object.assign({}, ORC, { atletas: null }));
+  assert.strictEqual(r.modo, 'supabase');
+  assert.ok(!('atletas' in inserts[0]));
+});
+teste('salvar: banco sem a coluna atletas grava o pedido sem a lista e avisa', async () => {
+  const { db, inserts } = dbComSupabaseFalso(true);
+  const r = await db.salvar('orcamentos', Object.assign({}, ORC, { atletas: [{ nome: 'A', numero: '1', tamanho: 'M' }] }));
+  assert.strictEqual(r.ok, true);
+  assert.strictEqual(r.modo, 'supabase');
+  assert.match(r.aviso, /atletas/);
+  assert.strictEqual(inserts.length, 2);
+  assert.ok(!('atletas' in inserts[1]));
+});
+
+/* ---------- Pacote de impressão no painel ---------- */
+const pacoteMod = () => require('../app/js/pacote-impressao.js');
+teste('pedidos: botão do pacote para gola redonda, aviso para gola V', async () => {
+  const p = await admin();
+  await p.selecionar('local-pedido-3');
+  const ok = p.el('inspetor').innerHTML;
+  assert.match(ok, /data-acao="pacote"[^>]*>Baixar pacote de impressão</);
+  await p.selecionar('local-pedido-1');
+  const v = p.el('inspetor').innerHTML;
+  assert.ok(v.includes('Molde de gola V/polo não cadastrado'));
+  assert.ok(!v.includes('data-acao="pacote"'));
+  assert.ok(v.includes('data-acao="prn"'), 'ficha continua disponível');
+});
+teste('pedidos: inspetor lista atletas escapados', async () => {
+  const p = await admin();
+  const dados = JSON.parse(p.armazem.jpDbOrcamentos);
+  dados.find((x) => x.id === 'local-pedido-3').atletas.push({ nome: XSS, numero: '1', tamanho: 'M' });
+  p.armazem.jpDbOrcamentos = JSON.stringify(dados);
+  p.el('btn-recarregar').disparar('click');
+  await esperar();
+  await p.selecionar('local-pedido-3');
+  const h = p.el('inspetor').innerHTML;
+  assert.ok(h.includes('7 SILVA'));
+  assert.ok(h.includes('&lt;script&gt;'));
+  assert.ok(!/<script/i.test(h));
+});
+teste('ficha: atletas por tamanho e peças reais do molde, até 80 colunas', () => {
+  const M = require('../app/moldes/camiseta-basica/M.json');
+  const p = Object.assign(pedido('futebol', 'redonda'), {
+    grade: { M: 2, GG: 1 }, total_pecas: 3,
+    atletas: [{ nome: 'SILVA', numero: '7', tamanho: 'M' }, { nome: 'JOÃO', numero: '10', tamanho: 'M' }, { nome: 'LIMA', numero: '9', tamanho: 'GG' }]
+  });
+  const txt = molde().gerarTextoPuro(p, { moldes: { M } });
+  assert.ok(txt.includes('ATLETAS (3)'));
+  assert.ok(txt.includes('M (2): 7 SILVA | 10 JOAO'));
+  assert.ok(txt.includes('GG (1): 9 LIMA'));
+  assert.ok(txt.includes('Frente: 58,7 x 78,8 cm'));
+  assert.ok(txt.includes('Manga (2x): 44,5 x 25,2 cm'));
+  assert.ok(txt.includes('GG: sem molde cadastrado'));
+  conferirColunas(txt);
+});
+teste('perfil de produção: salva, relê e recusa valor inválido', () => {
+  const armazem = {};
+  const storage = { getItem: (k) => (k in armazem ? armazem[k] : null), setItem: (k, v) => { armazem[k] = String(v); } };
+  const pk = pacoteMod();
+  assert.deepStrictEqual(pk.lerPerfil(storage), pk.PERFIL_PADRAO);
+  assert.strictEqual(pk.salvarPerfil(storage, { larguraUtil: '1800', espelhar: true }).ok, true);
+  assert.strictEqual(pk.lerPerfil(storage).larguraUtil, 1800);
+  assert.strictEqual(pk.lerPerfil(storage).espelhar, true);
+  const ruim = pk.salvarPerfil(storage, { larguraUtil: 0 });
+  assert.strictEqual(ruim.ok, false);
+  assert.match(ruim.erro, /largura útil/i);
+  assert.strictEqual(pk.lerPerfil(storage).larguraUtil, 1800, 'valor inválido não sobrescreve');
 });
 
 (async () => {

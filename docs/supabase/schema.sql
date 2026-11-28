@@ -19,6 +19,11 @@ create table if not exists public.orcamentos (
 
 alter table public.orcamentos add column if not exists status text not null default 'novo' check (status in ('novo','em_producao','finalizado','cancelado'));
 
+-- Lista de atletas do pedido: [{"nome":"SILVA","numero":"10","tamanho":"M"}], até 200.
+alter table public.orcamentos add column if not exists atletas jsonb;
+alter table public.orcamentos drop constraint if exists orcamentos_atletas_check;
+alter table public.orcamentos add constraint orcamentos_atletas_check check (atletas is null or (jsonb_typeof(atletas) = 'array' and jsonb_array_length(atletas) <= 200));
+
 -- Equipe interna (um perfil por usuário do Supabase Auth).
 create table if not exists public.perfis (
   id        uuid primary key references auth.users(id) on delete cascade,

@@ -6,8 +6,13 @@
   "scripts": {
     "start": "node serve.js",
     "build:embed": "node scripts/build_embedded_assets.js",
-    "test": "node tests/verify_kit_assets.js && node tests/verify_simulator_integration.js",
+    "test": "node tests/verify_kit_assets.js && node tests/verify_simulator_integration.js && node tests/verify_moldes.js && node tests/verify_arte_pecas.js && node tests/verify_pdf_basico.js && node tests/verify_pacote.js && node tests/verify_editor_posicao.js && node tests/verify_atletas.js && node tests/verify_operacao.js",
     "blender:kit": "node scripts/blender_exec.js scripts/blender_refine_kit.py",
-    "blender:fotos": "node scripts/blender_exec.js scripts/blender_render_produtos.py"
+    "blender:fotos": "node scripts/blender_exec.js scripts/blender_render_produtos.py",
+    "molde:importar": "node scripts/importar_molde_plt.js"
+  },
+  "devDependencies": {
+    "jspdf": "2.5.1",
+    "jszip": "3.10.1"
   }
 }

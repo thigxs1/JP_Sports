@@ -79,6 +79,21 @@ window.JP_DB = (function () {
           }
         },
         {
+          id: "local-pedido-3", criado_em: t, time: "Estrela do Norte", cidade: "Goiânia",
+          responsavel: "Responsável Exemplo 3", modalidade: "futebol", kit_completo: false,
+          grade: { P: 0, M: 2, G: 1, GG: 0, XG: 0, Infantil: 0 }, total_pecas: 3,
+          estimativa: null, prazo: null, observacoes: "Pedido de exemplo com lista de atletas.", status: "novo",
+          projeto_3d: {
+            modalidade: "futebol", gola: "redonda", estampa: "rajado", numero: "10", nome: "ESTRELA", fonte: "Montserrat",
+            patrocinio: "JP SPORT",
+            cores: { cor1: { nome: "Navy JP", hex: "#0F1F3D" }, cor2: { nome: "Elétrico JP", hex: "#2F5BFF" }, cor3: { nome: "Branco", hex: "#FFFFFF" }, cor4: { nome: "Branco", hex: "#FFFFFF" }, cor5: { nome: "Branco", hex: "#FFFFFF" } }
+          },
+          atletas: [
+            { nome: "SILVA", numero: "7", tamanho: "M" }, { nome: "JOÃO", numero: "10", tamanho: "M" },
+            { nome: "LIMA", numero: "9", tamanho: "G" }
+          ]
+        },
+        {
           id: "local-pedido-2", criado_em: t, time: "Falcões Basquete", cidade: "Santos",
           responsavel: "Responsável Exemplo 2", modalidade: "basquete", kit_completo: false,
           grade: { P: 0, M: 4, G: 5, GG: 3, XG: 0, Infantil: 0 }, total_pecas: 12,
@@ -186,8 +201,20 @@ window.JP_DB = (function () {
     }
     var c = sb();
     if (c) {
-      var r = await consultar(function () { return c.from(tabela).insert(dados); });
+      var envio = Object.assign({}, dados);
+      if (envio.atletas === null || envio.atletas === undefined) delete envio.atletas;
+      var r = await consultar(function () { return c.from(tabela).insert(envio); });
       if (!r.error) return { ok: true, modo: "supabase" };
+      // banco ainda sem a coluna "atletas" (schema.sql não rodado): grava o pedido sem a lista
+      if ("atletas" in envio && /atletas/.test(r.error.message || "") && (r.error.code === "PGRST204" || r.error.code === "42703")) {
+        delete envio.atletas;
+        var r2 = await consultar(function () { return c.from(tabela).insert(envio); });
+        if (!r2.error) {
+          console.warn("[JP_DB] coluna atletas ausente; pedido gravado sem a lista. Rode docs/supabase/schema.sql.");
+          return { ok: true, modo: "supabase", aviso: "Pedido salvo sem a lista de atletas (coluna atletas ausente no banco)" };
+        }
+        r = r2;
+      }
       erro = r.error.message;
       console.warn("[JP_DB]", tabela, erro);
     }
