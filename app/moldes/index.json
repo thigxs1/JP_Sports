@@ -1,0 +1,8 @@
+{
+  "camiseta-basica": {
+    "nome": "Camiseta básica gola careca",
+    "tamanhos": ["P", "M", "G"],
+    "modalidade": "futebol",
+    "gola": "redonda"
+  }
+}
