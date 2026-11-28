@@ -6,7 +6,7 @@
   "use strict";
   var Arte = raiz.JPArtePecas || (typeof require === "function" ? require("./arte-pecas.js") : null);
 
-  var LIMITES = { escudo: [3, 15], marca: [3, 15], patrocinio: [8, 40], nome: [8, 40], numero: [8, 35] };
+  var LIMITES = Arte.LIMITES;
   var NOMES = { marca: "Marca JP", escudo: "Escudo", patrocinio: "Patrocínio", nome: "Nome", numero: "Número" };
   var PECAS = { frente: "Frente", costas: "Costas", "manga-esquerda": "Manga esq.", "manga-direita": "Manga dir." };
 

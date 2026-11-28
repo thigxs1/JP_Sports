@@ -255,7 +255,7 @@
       ctx.fillStyle = "#FFFFFF";
       ctx.fillRect(0, 0, c.width, c.height);
       ctx.scale(k, k);
-      var escudo = projeto.escudo ? await carregarImagem(projeto.escudo) : null;
+      var escudo = Pacote.escudoValido(projeto.escudo) ? await carregarImagem(projeto.escudo) : null;
       pr.itens.forEach(function (it) {
         var s = perfil.sangria;
         ctx.save();

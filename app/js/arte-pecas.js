@@ -22,6 +22,9 @@
   };
   /* Altura do texto como fração da largura do elemento (mesmas proporções do 3D). */
   var ALTURA_TEXTO = { marca: 0.6, patrocinio: 0.132, nome: 0.141, numero: 0.62 };
+  /* Largura mínima e máxima de cada elemento, em cm (editor e dados salvos). */
+  var LIMITES = { escudo: [3, 15], marca: [3, 15], patrocinio: [8, 40], nome: [8, 40], numero: [8, 35] };
+  var NOMES_EL = { marca: "Marca JP", escudo: "Escudo", patrocinio: "Patrocínio", nome: "Nome", numero: "Número" };
   var ENCOLHE_ATE = 0.6; // como escreveAjustado: reduz até 60% antes de comprimir
   var PESOS_CAMISA = { "Montserrat": "900", "Bebas Neue": "400", "Teko": "600", "Graduate": "400" };
 
@@ -37,7 +40,9 @@
       var s = salvos.find(function (e) { return e && e.id === p.id; });
       if (!s) return p;
       var n = Object.assign({}, p);
-      ["dx", "dy", "largura"].forEach(function (k) { if (isFinite(Number(s[k]))) n[k] = Number(s[k]); });
+      ["dx", "dy", "largura"].forEach(function (k) { if (s[k] !== null && s[k] !== "" && isFinite(Number(s[k]))) n[k] = Number(s[k]); });
+      var lim = LIMITES[n.id] || [1, 60];
+      n.largura = Math.min(Math.max(n.largura, lim[0]), lim[1]);
       if (typeof s.peca === "string") n.peca = s.peca;
       if (s.ancora === "centro" || s.ancora === "decote") n.ancora = s.ancora;
       return n;
@@ -122,7 +127,7 @@
 
   /* Escreve centrado em (x, y), reduzindo até 60%; se ainda não couber, comprime na
      horizontal e avisa. escala converte o measureText para mm (o context2d do jsPDF mede em pt). */
-  function escreverAjustado(ctx, texto, fonte, px, max, x, y, escala) {
+  function escreverAjustado(ctx, texto, fonte, px, max, x, y, escala, comprimir) {
     var k = escala || 1, t = px;
     var medir = function () { return ctx.measureText(texto).width * k; };
     ctx.font = fonte(t);
@@ -132,6 +137,8 @@
     }
     var w = medir();
     if (w <= max + 1e-6) { ctx.fillText(texto, x, y); return true; }
+    // no PDF o context2d não comprime só na horizontal: quem desenha é o gancho (doc.text com Tz)
+    if (comprimir) { comprimir(texto, x, y, max / w, { font: ctx.font, cor: ctx.fillStyle }); return false; }
     ctx.save();
     ctx.translate(x, y);
     ctx.scale(max / w, 1);
@@ -278,8 +285,19 @@
     layout.elementos.forEach(function (el) {
       if (el.peca !== peca.id) return;
       var pos = posicao(el, peca);
+      var cx = Math.min(Math.max(pos.x, 0), peca.largura), cy = Math.min(Math.max(pos.y, 0), peca.altura);
+      if (cx !== pos.x || cy !== pos.y) {
+        avisos.push((NOMES_EL[el.id] || el.id) + " estava fora da peça " + peca.nome + " e foi trazido para dentro");
+        pos.x = cx; pos.y = cy;
+      }
       if (el.id === "escudo") {
-        if (o.escudo) ctx.drawImage(o.escudo, pos.x - pos.largura / 2, pos.y - pos.largura / 2, pos.largura, pos.largura);
+        if (o.escudo) {
+          // cabe na caixa L×L mantendo a proporção da imagem
+          var dim = o.escudoDimensoes || { w: o.escudo.naturalWidth || o.escudo.width, h: o.escudo.naturalHeight || o.escudo.height };
+          var razao = dim && dim.w > 0 && dim.h > 0 ? dim.w / dim.h : 1;
+          var w = razao >= 1 ? pos.largura : pos.largura * razao, h = razao >= 1 ? pos.largura / razao : pos.largura;
+          ctx.drawImage(o.escudo, pos.x - w / 2, pos.y - h / 2, w, h);
+        }
         else if (o.previa) escudoPadrao(ctx, pos.x, pos.y, pos.largura, fontes);
         else avisos.push("Sem escudo do cliente: área do escudo fica vazia");
         return;
@@ -292,7 +310,7 @@
         : el.id === "patrocinio" ? function (t) { return fontes("Montserrat", "800", t); }
           : function (t) { return fontes(familia, PESOS_CAMISA[familia], t); };
       ctx.fillStyle = cor(el.id === "nome" || el.id === "numero" ? "cor5" : "cor4");
-      if (!escreverAjustado(ctx, limpo.texto, fonte, px, pos.largura, pos.x, pos.y, o.escalaMedida)) {
+      if (!escreverAjustado(ctx, limpo.texto, fonte, px, pos.largura, pos.x, pos.y, o.escalaMedida, o.textoComprimido)) {
         avisos.push("\"" + limpo.texto + "\" não cabe em " + el.largura + " cm e foi comprimido");
       }
     });
@@ -336,7 +354,7 @@
 
   var JPArtePecas = {
     afimDePares: afimDePares, aplicarAfim: aplicarAfim, inverterAfim: inverterAfim,
-    ELEMENTOS: ELEMENTOS, layoutPadrao: layoutPadrao, normalizarLayout: normalizarLayout,
+    ELEMENTOS: ELEMENTOS, LIMITES: LIMITES, layoutPadrao: layoutPadrao, normalizarLayout: normalizarLayout,
     posicao: posicao, alturaElemento: alturaElemento, foraDaAreaSegura: foraDaAreaSegura,
     expandirContorno: expandirContorno, limparTexto: limparTexto, desenharPeca: desenharPeca,
     fonteCSS: fonteCSS

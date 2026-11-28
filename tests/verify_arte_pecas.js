@@ -168,6 +168,41 @@ teste('calibração real: decote de frente e costas do M cai na ilha de UV certa
   assert.ok(dentro(arte().aplicarAfim(arte().afimDePares(cal.pecas.costas.pares), co.pontos.decote), [131, 1054, 663, 1923]), 'costas');
 });
 
+teste('revisão: compressão de texto usa o gancho textoComprimido (não ctx.scale)', () => {
+  const ctx = ctxFalso(1.5);
+  const chamadas = [];
+  arte().desenharPeca(ctx, peca('M', 'costas'), PROJETO, { nome: 'MAXIMILIANOOOOO', numero: '9' }, {
+    sangria: 5, textoComprimido: (texto, x, y, escalaX) => chamadas.push({ texto, x, y, escalaX })
+  });
+  const c = chamadas.find((x) => x.texto === 'MAXIMILIANOOOOO');
+  assert.ok(c && c.escalaX > 0 && c.escalaX < 1, 'gancho chamado com escala < 1');
+  assert.ok(!ctx.chamadas.some((x) => x.fn === 'scale'), 'sem ctx.scale');
+});
+
+teste('revisão: escudo mantém a proporção dentro da caixa', () => {
+  const imagem = { naturalWidth: 150, naturalHeight: 100 };
+  const { chamadas } = desenhar(peca('M', 'frente'), null, null, { escudo: imagem });
+  const d = chamadas.find((c) => c.fn === 'drawImage');
+  const [, , , w, h] = d.args;
+  assert.ok(Math.abs(w / h - 1.5) < 0.001, 'proporção 3:2');
+  assert.ok(Math.abs(w - 90) < 0.01, 'lado maior = largura do elemento (9 cm)');
+  const s = desenhar(peca('M', 'frente'), null, null, { escudo: 'data:image/png;base64,AAAA', escudoDimensoes: { w: 100, h: 200 } })
+    .chamadas.find((c) => c.fn === 'drawImage');
+  assert.ok(Math.abs(s.args[3] / s.args[4] - 0.5) < 0.001 && Math.abs(s.args[4] - 90) < 0.01, 'dimensões informadas');
+});
+
+teste('revisão: layout salvo é limitado (largura e posição dentro da peça)', () => {
+  const l = arte().normalizarLayout({ elementos: [{ id: 'escudo', largura: -5 }, { id: 'numero', largura: 999 }] }, 'camiseta-basica');
+  assert.strictEqual(l.elementos.find((e) => e.id === 'escudo').largura, arte().LIMITES.escudo[0]);
+  assert.strictEqual(l.elementos.find((e) => e.id === 'numero').largura, arte().LIMITES.numero[1]);
+  const p = peca('M', 'costas');
+  const pr = Object.assign({}, PROJETO, { layout: { elementos: [{ id: 'numero', dx: 999, dy: 999 }] } });
+  const { chamadas, r } = desenhar(p, pr);
+  const n = textos(chamadas).find((c) => c.args[0] === '10');
+  assert.ok(n.args[1] <= p.largura && n.args[2] <= p.altura, 'trazido para dentro da peça');
+  assert.ok(r.avisos.some((a) => /fora da peça/.test(a)));
+});
+
 (async () => {
   for (const [nome, fn] of testes) {
     try { await fn(); console.log('PASS: ' + nome); } catch (e) { falhas++; console.error('FAIL: ' + nome + '\n      ' + e.message); }

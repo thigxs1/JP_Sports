@@ -134,6 +134,71 @@ teste('gola V: gerarPacote recusa com o motivo', async () => {
   assert.strictEqual(r.erro, 'Molde de gola V/polo não cadastrado');
 });
 
+/* Conteúdo das páginas (descomprime os streams FlateDecode). */
+const zlib = require('zlib');
+function conteudo(pdfBytes) {
+  const buf = Buffer.from(pdfBytes), txt = buf.toString('latin1'), saida = [];
+  const rx = /stream\r?\n/g;
+  let m;
+  while ((m = rx.exec(txt))) {
+    const ini = m.index + m[0].length, fim = txt.indexOf('endstream', ini);
+    try { saida.push(zlib.inflateSync(buf.subarray(ini, fim)).toString('latin1')); } catch (e) { /* não é Flate */ }
+  }
+  return saida.join('\n');
+}
+const num = '-?[\\d.]+';
+
+teste('revisão: peça girada é posicionada pela matriz do PDF, não pelo context2d', async () => {
+  const r = await gerar(pedido(), Object.assign({}, pacote.PERFIL_PADRAO, { comprimentoMax: 1000 }));
+  assert.ok(r.manifesto.tamanhos.G.pecas.some((p) => p.girado), 'alguma peça do G foi girada');
+  const z = await JSZip.loadAsync(r.zip);
+  const c = conteudo(await z.file('impressao-42-G.pdf').async('uint8array'));
+  assert.ok(new RegExp('\\b0\\.? -1\\.? 1\\.? 0\\.? ' + num + ' ' + num + ' cm').test(c), 'cm de 90°');
+  assert.ok(!new RegExp('(^|\\s)(?!1\\.? 0\\.? 0\\.? 1\\.?)' + num + ' ' + num + ' ' + num + ' ' + num + ' ' + num + ' ' + num + ' Tm').test(c) ||
+    !/0\.54030|-0\.84147/.test(c), 'sem rotação de 1 rad em imagem');
+  assert.ok(!/0\.54030/.test(c), 'drawImage não gira 1 rad');
+});
+
+teste('revisão: matriz da peça girada leva o canto local ao lugar certo da página', () => {
+  const item = { x: 100, y: 200, largura: 600, altura: 400, girado: true };
+  const s = 5, k = 72 / 25.4, H = 1000 * k;
+  const m = pacote.matrizGiro(item, s, k, H);
+  // ponto local (px, py) desenhado sem giro em (A + px, B + py); depois do cm deve ir para (X0 - py, Y0 + px)
+  const A = item.x + s, B = item.y + s, X0 = item.x + item.altura - s, Y0 = item.y + s;
+  [[0, 0], [50, 0], [0, 30], [120, 80]].forEach(([px, py]) => {
+    const X = k * (A + px), Y = H - k * (B + py);
+    const Xf = m[0] * X + m[2] * Y + m[4], Yf = m[1] * X + m[3] * Y + m[5];
+    assert.ok(Math.abs(Xf / k - (X0 - py)) < 1e-6 && Math.abs((H - Yf) / k - (Y0 + px)) < 1e-6, JSON.stringify([px, py]));
+  });
+});
+
+teste('revisão: espelhar usa a matriz do PDF sobre a peça inteira', async () => {
+  const r = await gerar(pedido({ atletas: [{ nome: 'SILVA', numero: '7', tamanho: 'M' }] }), Object.assign({}, pacote.PERFIL_PADRAO, { espelhar: true }));
+  const z = await JSZip.loadAsync(r.zip);
+  const c = conteudo(await z.file('impressao-42-M.pdf').async('uint8array'));
+  assert.ok(/-1\.? 0\.? 0\.? 1\.? 4535\.43\d* 0\.? cm/.test(c), 'cm de espelho em pt');
+  assert.ok(!/-1\.? 0\.? 0\.? -1\.? [\d.]+ [\d.]+ Tm/.test(c), 'texto não sai de cabeça para baixo');
+});
+
+teste('revisão: nome largo é comprimido na horizontal (Tz), não encolhido', async () => {
+  const p = pedido({ atletas: [{ nome: 'WWWWWWWWWWWWWWW', numero: '7', tamanho: 'M' }] });
+  p.projeto_3d = Object.assign({}, p.projeto_3d, { layout: { elementos: [{ id: 'nome', largura: 10 }] } });
+  const r = await gerar(p);
+  const z = await JSZip.loadAsync(r.zip);
+  const c = conteudo(await z.file('impressao-42-M.pdf').async('uint8array'));
+  assert.ok(/\b\d+(\.\d+)? Tz/.test(c), 'operador Tz');
+});
+
+teste('revisão: escudo que não é data:image png/jpeg é ignorado com aviso', async () => {
+  for (const escudo of ['https://exemplo.invalido/x.png', 'data:image/svg+xml;base64,PHN2Zz4=', 42]) {
+    const p = pedido(); p.projeto_3d = Object.assign({}, p.projeto_3d, { escudo });
+    const r = await gerar(p);
+    assert.ok(r.zip && r.manifesto.avisos.some((a) => /Escudo inválido/.test(a)), String(escudo));
+  }
+  assert.strictEqual(pacote.escudoValido(PNG), true);
+  assert.strictEqual(pacote.escudoValido('data:image/png;base64,' + 'A'.repeat(4000000)), false, 'limite de tamanho');
+});
+
 (async () => {
   for (const [nome, fn] of testes) {
     try { await fn(); console.log('PASS: ' + nome); } catch (e) { falhas++; console.error('FAIL: ' + nome + '\n      ' + ((e && e.stack) || e)); }

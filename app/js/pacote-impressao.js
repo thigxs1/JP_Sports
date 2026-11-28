@@ -94,6 +94,20 @@
     return { pranchas: pranchas };
   }
 
+  /* Só aceita o escudo salvo pelo simulador: PNG/JPEG em data URL, até ~2,9 MB.
+     URL externa faria o navegador do operador buscar um endereço vindo do formulário público. */
+  var LIMITE_ESCUDO = 4000000;
+  function escudoValido(v) {
+    return typeof v === "string" && v.length <= LIMITE_ESCUDO && /^data:image\/(png|jpeg);base64,[A-Za-z0-9+/=]+$/.test(v);
+  }
+
+  /* Matriz PDF (pt, origem embaixo) que gira 90° a peça desenhada sem giro em (A, B):
+     o ponto local (px, py) vai para (X0 − py, Y0 + px) na página, em mm. */
+  function matrizGiro(item, s, k, H) {
+    var A = item.x + s, B = item.y + s, X0 = item.x + item.altura - s, Y0 = item.y + s;
+    return [0, -1, 1, 0, k * X0 + k * B - H, H - k * Y0 + k * A];
+  }
+
   function rotulo(pedido, peca, copia) {
     var quem = copia.atleta ? [copia.atleta.numero, copia.atleta.nome].filter(Boolean).join(" ") : copia.indice + "/" + copia.total;
     return "#" + texto(pedido.id) + " · " + peca.nome + " · " + copia.tamanho + " · " + quem;
@@ -105,13 +119,27 @@
     ctx.closePath();
   }
 
-  /* Desenha uma peça já posicionada: arte, linha de corte, linhas técnicas e rótulo. */
-  function desenharItem(doc, ctx, item, perfil, projeto, opcoesArte) {
-    var peca = item.peca, s = perfil.sangria;
+  /* Desenha uma peça já posicionada: arte, linha de corte, linhas técnicas e rótulo.
+     Giro e espelho vão na matriz do PDF (cm): o context2d do jsPDF erra texto e imagem
+     sob rotate/scale, então dentro dele só há translação. */
+  function desenharItem(doc, ctx, item, perfil, projeto, opcoesArte, alturaPagina) {
+    var peca = item.peca, s = perfil.sangria, k = doc.internal.scaleFactor, H = alturaPagina * k;
+    var A = item.x + s, B = item.y + s;
+    doc.saveGraphicsState();
+    if (perfil.espelhar) doc.setCurrentTransformationMatrix(new doc.Matrix(-1, 0, 0, 1, perfil.larguraUtil * k, 0));
+    if (item.girado) doc.setCurrentTransformationMatrix(new (Function.prototype.bind.apply(doc.Matrix, [null].concat(matrizGiro(item, s, k, H))))());
     ctx.save();
-    if (item.girado) { ctx.translate(item.x + item.altura - s, item.y + s); ctx.rotate(Math.PI / 2); }
-    else ctx.translate(item.x + s, item.y + s);
-    var r = Arte.desenharPeca(ctx, peca, projeto, item.copia.atleta, opcoesArte);
+    ctx.translate(A, B);
+    var opcoes = Object.assign({}, opcoesArte, {
+      textoComprimido: function (texto, x, y, escalaX, info) {
+        var m = /([\d.]+)px\s+(\S+)/.exec(info.font || "");
+        if (m) { doc.setFont(m[2], "normal"); doc.setFontSize(Number(m[1]) * k); }
+        doc.setTextColor(info.cor || "#000000");
+        var largura = doc.getTextWidth(texto) * escalaX;
+        doc.text(texto, A + x - largura / 2, B + y, { baseline: "middle", horizontalScale: escalaX });
+      }
+    });
+    var r = Arte.desenharPeca(ctx, peca, projeto, item.copia.atleta, opcoes);
     ctx.strokeStyle = "#000000";
     ctx.lineWidth = 0.3;
     caminho(ctx, peca.contorno);
@@ -135,6 +163,7 @@
     ctx.textBaseline = "middle";
     ctx.fillText(item.rotulo, peca.pontos.centro, ty);
     ctx.restore();
+    doc.restoreGraphicsState();
     return r.avisos;
   }
 
@@ -148,21 +177,31 @@
     var orient = function (pr) { return perfil.larguraUtil > pr.comprimento ? "landscape" : "portrait"; };
     var doc = new deps.jsPDF({ unit: "mm", format: formato(primeira), orientation: orient(primeira), compress: true });
     await Fontes.registrarFontes(doc, deps.carregarTTF);
+    var escudo = null, escudoDimensoes = null;
+    if (projeto.escudo !== undefined && projeto.escudo !== null && projeto.escudo !== "") {
+      if (escudoValido(projeto.escudo)) {
+        try {
+          var prop = doc.getImageProperties(projeto.escudo);
+          escudo = projeto.escudo;
+          escudoDimensoes = { w: prop.width, h: prop.height };
+        } catch (e) { escudo = null; }
+      }
+      if (!escudo && avisos.indexOf("Escudo inválido ignorado (use PNG ou JPEG enviado pelo simulador)") < 0) {
+        avisos.push("Escudo inválido ignorado (use PNG ou JPEG enviado pelo simulador)");
+      }
+    }
     var opcoesArte = {
-      sangria: perfil.sangria, fontes: Fontes.fontePDF, alfa: Fontes.alfaPDF(doc),
+      sangria: perfil.sangria, fontes: Fontes.fontePDF, alfa: Fontes.alfaPDF(doc), escudoDimensoes: escudoDimensoes,
       escalaMedida: 1 / doc.internal.scaleFactor, // measureText do context2d vem em pt
       suporta: function (ch) { return Fontes.glifoSuportado(doc, "Montserrat", "900", ch); },
-      escudo: projeto.escudo || null
+      escudo: escudo
     };
     enc.pranchas.forEach(function (pr, i) {
       if (i) doc.addPage(formato(pr), orient(pr));
       var ctx = doc.context2d;
-      ctx.save();
-      if (perfil.espelhar) { ctx.translate(perfil.larguraUtil, 0); ctx.scale(-1, 1); }
       pr.itens.forEach(function (it) {
-        desenharItem(doc, ctx, it, perfil, projeto, opcoesArte).forEach(function (a) { if (avisos.indexOf(a) < 0) avisos.push(a); });
+        desenharItem(doc, ctx, it, perfil, projeto, opcoesArte, pr.comprimento).forEach(function (a) { if (avisos.indexOf(a) < 0) avisos.push(a); });
       });
-      ctx.restore();
       doc.setFont(Fontes.nomeInterno("Montserrat", "800"), "normal");
       doc.setFontSize(14);
       doc.setTextColor(0, 0, 0);
@@ -269,7 +308,7 @@
 
   var JPPacoteImpressao = {
     PERFIL_PADRAO: PERFIL_PADRAO, podeExportar: podeExportar, copias: copias, encaixar: encaixar,
-    gerarPacote: gerarPacote, validarPerfil: validarPerfil, lerPerfil: lerPerfil, salvarPerfil: salvarPerfil
+    gerarPacote: gerarPacote, escudoValido: escudoValido, matrizGiro: matrizGiro, validarPerfil: validarPerfil, lerPerfil: lerPerfil, salvarPerfil: salvarPerfil
   };
   raiz.JPPacoteImpressao = JPPacoteImpressao;
   if (typeof module !== "undefined" && module.exports) module.exports = JPPacoteImpressao;
