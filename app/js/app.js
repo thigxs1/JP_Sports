@@ -128,6 +128,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   await loadSVGTemplate();
   await loadPBRMaps();
   await load3DModel();
+  restaurarProjetoSalvo();
   await carregarMoldeBase();
 
   // modalidade vinda da Home/Coleção (?modalidade=basquete)
@@ -201,6 +202,9 @@ async function aplicarModalidade(modo) {
 
   const sel = document.getElementById("selectGola");
   if (sel) sel.disabled = modo === "basquete";
+  // posicionamento livre só onde há molde (camiseta básica = futebol)
+  const cardPos = document.getElementById("cardPosicao");
+  if (cardPos) cardPos.hidden = modo !== "futebol";
   const titulo = document.getElementById("badgeTitulo");
   const p = KIT_PRESETS.find((k) => k.modo === modo);
   if (titulo && p) titulo.innerText = p.nome;
@@ -208,16 +212,57 @@ async function aplicarModalidade(modo) {
 }
 
 function salvarProjeto() {
+  const projeto = {
+    modalidade: estadoSimulador.modalidade,
+    gola: estadoSimulador.modalidade === "basquete" ? "regata" : estadoSimulador.gola,
+    estampa: estadoSimulador.estampa,
+    cores: estadoSimulador.cores,
+    numero: estadoSimulador.numero,
+    nome: estadoSimulador.nome,
+    patrocinio: estadoSimulador.patrocinio,
+    fonte: estadoSimulador.fonte,
+    layout: estadoSimulador.layout || null,
+    escudo: estadoSimulador.escudoDataURL || null
+  };
   try {
-    localStorage.setItem("jpSportProjeto", JSON.stringify({
-      modalidade: estadoSimulador.modalidade,
-      gola: estadoSimulador.modalidade === "basquete" ? "regata" : estadoSimulador.gola,
-      estampa: estadoSimulador.estampa,
-      cores: estadoSimulador.cores,
-      numero: estadoSimulador.numero,
-      nome: estadoSimulador.nome
-    }));
-  } catch (e) { /* modo privado: ignora */ }
+    localStorage.setItem("jpSportProjeto", JSON.stringify(projeto));
+  } catch (e) {
+    // sem espaço (escudo grande) ou modo privado: salva sem o escudo e avisa
+    try {
+      localStorage.setItem("jpSportProjeto", JSON.stringify(Object.assign({}, projeto, { escudo: null })));
+      const aviso = document.querySelector("#dropzoneEscudo span");
+      if (aviso && projeto.escudo) aviso.innerText = "Escudo grande demais para salvar: envie um arquivo menor";
+    } catch (e2) { /* modo privado: ignora */ }
+  }
+}
+
+/* Layout e escudo salvos de uma visita anterior. */
+function restaurarProjetoSalvo() {
+  try {
+    const salvo = JSON.parse(localStorage.getItem("jpSportProjeto") || "null");
+    if (!salvo) return;
+    if (salvo.layout) estadoSimulador.layout = salvo.layout;
+    if (typeof salvo.escudo === "string" && salvo.escudo.startsWith("data:image/")) {
+      estadoSimulador.escudoDataURL = salvo.escudo;
+      const img = new Image();
+      img.onload = () => { estadoSimulador.escudoImg = img; updateAllTextures(); };
+      img.src = salvo.escudo;
+    }
+  } catch (e) { /* projeto salvo inválido: ignora */ }
+}
+
+/* Reduz o escudo para no máximo 1500 px (PNG, mantém a transparência); se o arquivo
+   ainda ficar grande demais para salvar, reduz para 1000 px. */
+function prepararEscudo(img) {
+  const gerar = (max) => {
+    const d = JPEditorPosicao.dimensoesEscudo(img.naturalWidth || img.width, img.naturalHeight || img.height, max);
+    const c = document.createElement("canvas");
+    c.width = d.w; c.height = d.h;
+    c.getContext("2d").drawImage(img, 0, 0, d.w, d.h);
+    return c.toDataURL("image/png");
+  };
+  const url = gerar(1500);
+  return url.length > 1500000 ? gerar(1000) : url;
 }
 
 function initCanvases() {
@@ -819,6 +864,13 @@ async function carregarMoldeBase() {
     moldeBase = m;
     calibracaoUV = c;
     Object.keys(c.pecas).forEach((id) => { afinsUV[id] = JPArtePecas.afimDePares(c.pecas[id].pares); });
+    const raizEditor = document.getElementById("editorPosicao");
+    if (raizEditor && window.JPEditorPosicao) {
+      JPEditorPosicao.iniciar(raizEditor, {
+        molde: m, layout: estadoSimulador.layout,
+        aoMudar: (layout) => { estadoSimulador.layout = layout; updateDynamicTexture(); }
+      });
+    }
   } catch (e) {
     console.warn("[simulador] molde não carregado (file:// ou rede); usando a arte fixa:", e);
   }
@@ -1303,9 +1355,15 @@ function initDOMEvents() {
         reader.onload = (event) => {
           const img = new Image();
           img.onload = () => {
-            estadoSimulador.escudoImg = img;
-            dropzone.querySelector("span").innerText = `Escudo: ${file.name}`;
-            updateAllTextures();
+            const url = window.JPEditorPosicao ? prepararEscudo(img) : img.src;
+            const reduzida = new Image();
+            reduzida.onload = () => {
+              estadoSimulador.escudoImg = reduzida;
+              estadoSimulador.escudoDataURL = url;
+              dropzone.querySelector("span").innerText = `Escudo: ${file.name}`;
+              updateAllTextures();
+            };
+            reduzida.src = url;
           };
           img.src = event.target.result;
         };

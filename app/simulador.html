@@ -241,6 +241,12 @@
                 <input type="file" id="uploadEscudo" accept="image/png, image/jpeg" style="display:none">
               </div>
             </div>
+
+            <div class="input-card" id="cardPosicao">
+              <label>Posição da arte (vale para a impressão):</label>
+              <p class="pos-ajuda">Escolha o elemento e arraste na peça. As setas movem 0,5 cm (Shift: 2 cm).</p>
+              <div id="editorPosicao" class="pos-editor"><p class="pos-ajuda">Carregando o molde…</p></div>
+            </div>
           </section>
 
           <!-- TAB 4: RESUMO & ORÇAMENTO -->
@@ -302,6 +308,7 @@
 
   <!-- Main Application Script -->
   <script src="js/arte-pecas.js"></script>
+  <script src="js/editor-posicao.js"></script>
   <script src="js/app.js"></script>
   <script src="assets/icones-modalidades.js"></script>
   <script src="assets/jp-sport.js"></script>
