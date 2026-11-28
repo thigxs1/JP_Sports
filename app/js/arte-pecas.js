@@ -120,17 +120,24 @@
   }
   function fonteCSS(familia, peso, px) { return peso + " " + px + "px '" + familia + "', sans-serif"; }
 
-  /* Escreve centrado em (x, y), reduzindo até 60%; se ainda não couber, comprime e avisa. */
-  function escreverAjustado(ctx, texto, fonte, px, max, x, y) {
-    var t = px;
+  /* Escreve centrado em (x, y), reduzindo até 60%; se ainda não couber, comprime na
+     horizontal e avisa. escala converte o measureText para mm (o context2d do jsPDF mede em pt). */
+  function escreverAjustado(ctx, texto, fonte, px, max, x, y, escala) {
+    var k = escala || 1, t = px;
+    var medir = function () { return ctx.measureText(texto).width * k; };
     ctx.font = fonte(t);
-    while (t > px * ENCOLHE_ATE && ctx.measureText(texto).width > max) {
+    while (t > px * ENCOLHE_ATE && medir() > max) {
       t = Math.max(px * ENCOLHE_ATE, t - px * 0.04);
       ctx.font = fonte(t);
     }
-    var cabe = ctx.measureText(texto).width <= max + 1e-6;
-    ctx.fillText(texto, x, y, max);
-    return cabe;
+    var w = medir();
+    if (w <= max + 1e-6) { ctx.fillText(texto, x, y); return true; }
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.scale(max / w, 1);
+    ctx.fillText(texto, 0, 0);
+    ctx.restore();
+    return false;
   }
 
   /* ---------- Estampas ---------- */
@@ -242,7 +249,7 @@
     ctx.closePath();
   }
 
-  /* Desenha a peça inteira no ctx (já em mm). opcoes: { sangria, fontes(fam, peso, px), alfa(a),
+  /* Desenha a peça inteira no ctx (já em mm). opcoes: { sangria, fontes(fam, peso, px), alfa(a), escalaMedida,
      suporta(ch), escudo (imagem para drawImage), previa (bool), layout (sobrepõe o do projeto) } */
   function desenharPeca(ctx, peca, projeto, atleta, opcoes) {
     var o = opcoes || {}, p = projeto || {}, avisos = [];
@@ -285,7 +292,7 @@
         : el.id === "patrocinio" ? function (t) { return fontes("Montserrat", "800", t); }
           : function (t) { return fontes(familia, PESOS_CAMISA[familia], t); };
       ctx.fillStyle = cor(el.id === "nome" || el.id === "numero" ? "cor5" : "cor4");
-      if (!escreverAjustado(ctx, limpo.texto, fonte, px, pos.largura, pos.x, pos.y)) {
+      if (!escreverAjustado(ctx, limpo.texto, fonte, px, pos.largura, pos.x, pos.y, o.escalaMedida)) {
         avisos.push("\"" + limpo.texto + "\" não cabe em " + el.largura + " cm e foi comprimido");
       }
     });

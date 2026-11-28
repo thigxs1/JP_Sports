@@ -138,7 +138,9 @@ teste('nome que não cabe encolhe e avisa', () => {
   const ctx = ctxFalso(1.5); // fonte larga: não cabe nem no tamanho mínimo
   const r = arte().desenharPeca(ctx, peca('M', 'costas'), PROJETO, { nome: 'MAXIMILIANOOOOO', numero: '9' }, { sangria: 5 });
   const n = textos(ctx.chamadas).find((c) => c.args[0] === 'MAXIMILIANOOOOO');
-  assert.ok(n && n.args[3] > 0, 'desenhado com largura máxima');
+  assert.ok(n, 'desenhado');
+  const esc = ctx.chamadas.find((c) => c.fn === 'scale');
+  assert.ok(esc && esc.args[0] < 1 && esc.args[1] === 1, 'comprimido só na horizontal');
   assert.ok(r.avisos.some((a) => /não cabe/.test(a)));
 });
 
