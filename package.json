@@ -9,5 +9,9 @@
     "test": "node tests/verify_kit_assets.js && node tests/verify_simulator_integration.js",
     "blender:kit": "node scripts/blender_exec.js scripts/blender_refine_kit.py",
     "blender:fotos": "node scripts/blender_exec.js scripts/blender_render_produtos.py"
+  },
+  "devDependencies": {
+    "jspdf": "2.5.1",
+    "jszip": "3.10.1"
   }
 }

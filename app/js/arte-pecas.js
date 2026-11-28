@@ -152,7 +152,7 @@
     ctx.fill();
   }
   /* Mesmo rajado do 3D (semente 1337), em mm: 1 px da textura ≈ 0,6 mm. */
-  function rajado(ctx, caixa, cor1, cor2) {
+  function rajado(ctx, caixa, cor1, cor2, alfa) {
     var K = 0.6, W = caixa.w, H = caixa.h;
     var escala = (W * H) / Math.pow(2048 * K, 2);
     var seed = 1337;
@@ -165,7 +165,7 @@
       [cor2, 0.88, 95 * 6.76, [65, 260], [6, 16]],
       [cor1, 0.65, 55 * 6.76, [80, 240], [5, 14]]].forEach(function (cam) {
       ctx.fillStyle = cam[0];
-      ctx.globalAlpha = cam[1];
+      alfa(cam[1]);
       var n = Math.max(1, Math.round(cam[2] * escala));
       for (var i = 0; i < n; i++) {
         var rx = (rand() - 0.5) * D, ry = (rand() - 0.5) * D;
@@ -173,10 +173,10 @@
         brush(ctx, rx, ry, rw, rh);
       }
     });
-    ctx.globalAlpha = 1;
+    alfa(1);
     ctx.restore();
   }
-  function fundo(ctx, peca, projeto, caixa) {
+  function fundo(ctx, peca, projeto, caixa, alfa) {
     var cores = projeto.cores || {};
     var cor = function (k, padrao) { return (cores[k] && cores[k].hex) || padrao; };
     var c1 = cor("cor1", "#0F1F3D"), c2 = cor("cor2", "#2F5BFF");
@@ -201,7 +201,7 @@
         ctx.fillRect(caixa.x, caixa.y + i * passo, caixa.w, passo + 0.2);
       }
     } else if (estampa === "rajado") {
-      rajado(ctx, caixa, c1, c2);
+      rajado(ctx, caixa, c1, c2, alfa);
     } else if (estampa === "colors") {
       return ["Estampa Colors exportada na cor 1 (desenho por peça ainda não disponível)"];
     }
@@ -242,7 +242,7 @@
     ctx.closePath();
   }
 
-  /* Desenha a peça inteira no ctx (já em mm). opcoes: { sangria, fontes(fam, peso, px),
+  /* Desenha a peça inteira no ctx (já em mm). opcoes: { sangria, fontes(fam, peso, px), alfa(a),
      suporta(ch), escudo (imagem para drawImage), previa (bool), layout (sobrepõe o do projeto) } */
   function desenharPeca(ctx, peca, projeto, atleta, opcoes) {
     var o = opcoes || {}, p = projeto || {}, avisos = [];
@@ -255,7 +255,8 @@
     ctx.save();
     caminho(ctx, expandirContorno(peca.contorno, sangria));
     ctx.clip();
-    avisos = avisos.concat(fundo(ctx, peca, p, caixa));
+    var alfa = o.alfa || function (a) { ctx.globalAlpha = a; };
+    avisos = avisos.concat(fundo(ctx, peca, p, caixa, alfa));
 
     var layout = normalizarLayout(o.layout || p.layout, (p.layout && p.layout.modelo) || "camiseta-basica");
     var familia = Object.prototype.hasOwnProperty.call(PESOS_CAMISA, p.fonte) ? p.fonte : "Montserrat";
