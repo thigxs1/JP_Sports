@@ -12,6 +12,34 @@
   var CARGOS = { admin_global: "Admin Global", operacao: "Operação" };
   var ABAS = ["pedidos", "promocoes", "usuarios"];
   var estado = { perfil: null, modo: "local", pedidos: [], selecionado: null, carga: 0, salvando: {} };
+  var Pacote = window.JPPacoteImpressao;
+  var moldes = { indice: null, porModelo: {} };
+
+  /* Índice dos moldes do Audaces (app/moldes/index.json): decide se o pacote pode sair. */
+  async function carregarIndiceMoldes() {
+    if (!Pacote || typeof fetch !== "function") return;
+    try {
+      var r = await fetch("moldes/index.json");
+      moldes.indice = r.ok ? await r.json() : {};
+    } catch (e) { moldes.indice = {}; console.warn("[operacao] índice de moldes:", e); }
+    renderInspetor();
+  }
+  async function moldesDoModelo(modelo) {
+    if (moldes.porModelo[modelo]) return moldes.porModelo[modelo];
+    var lista = {}, tamanhos = (moldes.indice[modelo] && moldes.indice[modelo].tamanhos) || [];
+    await Promise.all(tamanhos.map(async function (t) {
+      var r = await fetch("moldes/" + modelo + "/" + t + ".json");
+      if (r.ok) lista[t] = await r.json();
+    }));
+    moldes.porModelo[modelo] = lista;
+    return lista;
+  }
+  function textoAtletas(d) {
+    if (!d.atletas.length) return "Sem lista (nome e número do projeto em todas)";
+    var grupos = {};
+    d.atletas.forEach(function (a) { (grupos[a.tamanho] = grupos[a.tamanho] || []).push([a.numero, a.nome].filter(Boolean).join(" ") || "-"); });
+    return Object.keys(grupos).map(function (t) { return t + ": " + grupos[t].join(", "); }).join(" · ");
+  }
 
   function el(id) { return document.getElementById(id); }
   function nomeDe(mapa, chave) { return Object.prototype.hasOwnProperty.call(mapa, chave) ? mapa[chave] : chave || "-"; }
@@ -147,8 +175,15 @@
       ["Gola", d.golaTexto], ["Estampa", d.estampa], ["Número / nome", (d.numero || "-") + " / " + (d.nome || "-")],
       ["Cores", d.cores.map(Molde.textoCor).join(" · ") || "Não informadas"],
       ["Grade", d.grade.map(function (g) { return g.tamanho + ": " + g.qtd; }).join(" · ")],
-      ["Total", d.total + " peças"], ["Observações", d.observacoes || "-"]
+      ["Total", d.total + " peças"], ["Atletas", textoAtletas(d)], ["Observações", d.observacoes || "-"]
     ];
+    var pacote = "";
+    if (Pacote) {
+      var pode = moldes.indice ? Pacote.podeExportar(p, moldes.indice) : null;
+      pacote = !pode ? '<p class="op-aviso">Carregando moldes…</p>'
+        : pode.ok ? '<button type="button" class="btn btn-acao" data-acao="pacote">Baixar pacote de impressão</button>'
+          : '<p class="op-aviso op-bloqueado">' + esc(pode.motivo) + ": o pacote de impressão não sai para este pedido.</p>";
+    }
     el("inspetor").innerHTML =
       '<header class="op-inspetor-topo"><h2 class="t-h3">' + esc(d.time) + "</h2>" +
       '<div class="campo"><label for="pedido-status">Status do pedido</label><select id="pedido-status"' +
@@ -161,12 +196,114 @@
       '<dl class="op-detalhes">' + campos.map(function (c) {
         return "<div><dt>" + c[0] + "</dt><dd>" + esc(c[1]) + "</dd></div>";
       }).join("") + "</dl>" +
+      '<div class="op-acoes op-acoes-pacote">' + pacote + '</div><p id="pacote-aviso" class="op-aviso" role="status"></p>' +
+      (Pacote ? formPerfil() : "") +
       '<div class="op-acoes">' +
-      '<button type="button" class="btn btn-acao" data-acao="imprimir">Imprimir Desenho Técnico (P&amp;B)</button>' +
+      '<button type="button" class="op-btn" data-acao="imprimir">Imprimir Desenho Técnico (P&amp;B)</button>' +
       '<button type="button" class="op-btn" data-acao="prn">Baixar Molde Matricial (.prn ESC/P)</button>' +
       '<button type="button" class="op-btn" data-acao="txt">Baixar Ficha (.txt)</button></div>' +
       '<div class="op-preview">' + Molde.gerarDesenhoTecnicoSVG(p) + "</div>";
   }
+  /* ---------- Perfil de produção (plotter) ---------- */
+  var CAMPOS_PERFIL = [["larguraUtil", "Largura útil (mm)"], ["margemLateral", "Margem lateral (mm)"], ["sangria", "Sangria (mm)"],
+    ["espaco", "Espaço entre peças (mm)"], ["comprimentoMax", "Comprimento máx. por prancha (mm)"], ["areaSegura", "Área segura (mm)"]];
+  var MARCAS_PERFIL = [["girar90", "Girar peças 90° quando não couberem"], ["espelhar", "Espelhar (só se o RIP não espelha)"],
+    ["linhasTecnicas", "Imprimir fio e piques"]];
+  function formPerfil() {
+    var pf = Pacote.lerPerfil(window.localStorage);
+    return '<details class="op-perfil"><summary>Perfil de produção da plotter</summary><form id="form-perfil" class="op-perfil-campos">' +
+      CAMPOS_PERFIL.map(function (c) {
+        return '<div class="campo"><label for="perfil-' + c[0] + '">' + c[1] + '</label><input id="perfil-' + c[0] + '" name="' + c[0] +
+          '" type="number" step="1" value="' + esc(pf[c[0]]) + '"></div>';
+      }).join("") +
+      MARCAS_PERFIL.map(function (c) {
+        return '<label class="op-check"><input type="checkbox" name="' + c[0] + '"' + (pf[c[0]] ? " checked" : "") + "> " + c[1] + "</label>";
+      }).join("") +
+      '<div class="op-acoes"><button type="submit" class="op-btn">Salvar perfil</button></div>' +
+      '<p id="perfil-aviso" class="op-aviso" role="status"></p></form></details>';
+  }
+  function salvarPerfilDoForm(form) {
+    var entrada = {};
+    CAMPOS_PERFIL.forEach(function (c) { entrada[c[0]] = form.elements[c[0]].value; });
+    MARCAS_PERFIL.forEach(function (c) { entrada[c[0]] = form.elements[c[0]].checked; });
+    var r = Pacote.salvarPerfil(window.localStorage, entrada);
+    el("perfil-aviso").textContent = r.ok ? "Perfil salvo neste navegador." : r.erro;
+    el("perfil-aviso").classList.toggle("op-erro", !r.ok);
+  }
+
+  /* ---------- Pacote de impressão ---------- */
+  function base64(buffer) {
+    var bytes = new Uint8Array(buffer), partes = [];
+    for (var i = 0; i < bytes.length; i += 0x8000) partes.push(String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000)));
+    return btoa(partes.join(""));
+  }
+  function carregarImagem(src) {
+    return new Promise(function (ok) {
+      var img = new Image();
+      img.onload = function () { ok(img); };
+      img.onerror = function () { ok(null); };
+      img.src = src;
+    });
+  }
+  /* Prévia PNG da primeira prancha do unificado, a 0,5 px/mm. */
+  function previaPNG(perfil, projeto) {
+    return async function (uni) {
+      var pr = uni.encaixe[0], k = 0.5, c = document.createElement("canvas");
+      c.width = Math.round(perfil.larguraUtil * k);
+      c.height = Math.round(pr.comprimento * k);
+      var ctx = c.getContext("2d");
+      ctx.fillStyle = "#FFFFFF";
+      ctx.fillRect(0, 0, c.width, c.height);
+      ctx.scale(k, k);
+      var escudo = projeto.escudo ? await carregarImagem(projeto.escudo) : null;
+      pr.itens.forEach(function (it) {
+        var s = perfil.sangria;
+        ctx.save();
+        if (it.girado) { ctx.translate(it.x + it.altura - s, it.y + s); ctx.rotate(Math.PI / 2); } else ctx.translate(it.x + s, it.y + s);
+        JPArtePecas.desenharPeca(ctx, it.peca, projeto, it.copia.atleta, { sangria: s, escudo: escudo });
+        ctx.restore();
+      });
+      return new Promise(function (ok) {
+        c.toBlob(function (b) { b.arrayBuffer().then(function (a) { ok(new Uint8Array(a)); }); }, "image/png");
+      });
+    };
+  }
+  async function baixarPacote(p) {
+    var botao = document.querySelector('[data-acao="pacote"]');
+    var aviso = el("pacote-aviso");
+    var perfilSessao = estado.perfil;
+    if (botao) botao.disabled = true;
+    aviso.classList.remove("op-erro");
+    aviso.textContent = "Gerando o pacote… (pode levar alguns segundos)";
+    try {
+      var pode = Pacote.podeExportar(p, moldes.indice);
+      if (!pode.ok) throw new Error(pode.motivo);
+      var perfil = Pacote.lerPerfil(window.localStorage);
+      var r = await Pacote.gerarPacote(p, {
+        moldes: await moldesDoModelo(pode.modelo), indice: moldes.indice, perfil: perfil,
+        jsPDF: window.jspdf && window.jspdf.jsPDF, JSZip: window.JSZip,
+        carregarTTF: async function (arquivo) { return base64(await (await fetch("assets/fontes/" + arquivo)).arrayBuffer()); },
+        previaPNG: previaPNG(perfil, p.projeto_3d || {})
+      });
+      if (estado.perfil !== perfilSessao) return;
+      if (r.erro) throw new Error(r.erro);
+      var url = URL.createObjectURL(new Blob([r.zip], { type: "application/zip" }));
+      var a = document.createElement("a");
+      a.href = url;
+      a.download = "pacote-" + String(p.id).replace(/[^\w.-]+/g, "_") + ".zip";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+      aviso.textContent = "Pacote gerado." + (r.avisos.length ? " Avisos: " + r.avisos.join(" · ") : "");
+    } catch (e) {
+      console.error("[operacao] pacote:", e);
+      aviso.textContent = "Não foi possível gerar o pacote: " + (e && e.message ? e.message : e);
+      aviso.classList.add("op-erro");
+    }
+    if (botao && document.body.contains(botao)) botao.disabled = false;
+  }
+
   function selecionar(id) {
     estado.selecionado = String(id);
     document.querySelectorAll(".op-pedido").forEach(function (b) {
@@ -584,6 +721,11 @@
     var b = e.target.closest("[data-id]");
     if (b) selecionar(b.dataset.id);
   });
+  el("inspetor").addEventListener("submit", function (e) {
+    if (!e.target || e.target.id !== "form-perfil") return;
+    e.preventDefault();
+    salvarPerfilDoForm(e.target);
+  });
   el("inspetor").addEventListener("change", function (e) {
     if (e.target.id === "pedido-status") mudarStatus(estado.selecionado, e.target.value);
   });
@@ -591,11 +733,13 @@
     var b = e.target.closest("[data-acao]");
     var p = b && acharPedido(estado.selecionado);
     if (!p) return;
-    if (b.dataset.acao === "imprimir") Molde.imprimirMolde(p);
+    if (b.dataset.acao === "pacote") baixarPacote(p);
+    else if (b.dataset.acao === "imprimir") Molde.imprimirMolde(p);
     else if (b.dataset.acao === "prn") Molde.baixarPRN(p);
     else Molde.baixarTXT(p);
   });
 
+  carregarIndiceMoldes();
   (async function () {
     try {
       if (!(await abrirPainel())) mostrarLogin();

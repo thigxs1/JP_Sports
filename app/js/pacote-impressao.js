@@ -171,6 +171,7 @@
       Fontes.quadradoControle(doc, perfil.larguraUtil - perfil.margemLateral - 100, 18);
     });
     return {
+      encaixe: enc.pranchas,
       bytes: new Uint8Array(doc.output("arraybuffer")),
       pranchas: enc.pranchas.map(function (pr) { return { comprimento: pr.comprimento, pecas: pr.itens.length }; }),
       pecas: enc.pranchas.reduce(function (l, pr) { return l.concat(pr.itens.map(function (it) { return { rotulo: it.rotulo, girado: it.girado }; })); }, [])
@@ -226,15 +227,49 @@
       manifesto.unificado = { arquivo: arqUni, pranchas: uni.pranchas, pecas: uni.pecas };
       if (deps.previaPNG) zip.file("previa-" + id + ".png", await deps.previaPNG(uni));
     }
-    zip.file("ficha-" + id + ".txt", Ficha.gerarTextoPuro(pedido));
-    zip.file("ficha-" + id + ".prn", Ficha.gerarArquivoMatricialESCP(pedido));
+    zip.file("ficha-" + id + ".txt", Ficha.gerarTextoPuro(pedido, { moldes: deps.moldes }));
+    zip.file("ficha-" + id + ".prn", Ficha.gerarArquivoMatricialESCP(pedido, { moldes: deps.moldes }));
     zip.file("manifesto-" + id + ".json", JSON.stringify(manifesto, null, 2));
     return { zip: await zip.generateAsync({ type: "uint8array" }), manifesto: manifesto, avisos: avisos };
   }
 
+  /* ---------- Perfil de produção (salvo no navegador do painel) ---------- */
+  var CHAVE_PERFIL = "jpPerfilProducao";
+  var FAIXAS = {
+    larguraUtil: [200, 5000, "Largura útil"], margemLateral: [0, 200, "Margem lateral"], sangria: [0, 30, "Sangria"],
+    espaco: [0, 100, "Espaço entre peças"], comprimentoMax: [500, LIMITE_PDF_MM, "Comprimento máximo"], areaSegura: [0, 100, "Área segura"]
+  };
+  function validarPerfil(entrada) {
+    var e = entrada || {}, perfil = Object.assign({}, PERFIL_PADRAO);
+    var chaves = Object.keys(FAIXAS);
+    for (var i = 0; i < chaves.length; i++) {
+      var k = chaves[i];
+      if (e[k] === undefined || e[k] === "") continue;
+      var v = Number(e[k]), f = FAIXAS[k];
+      if (!isFinite(v) || v < f[0] || v > f[1]) return { ok: false, erro: f[2] + " deve ficar entre " + f[0] + " e " + f[1] + " mm" };
+      perfil[k] = v;
+    }
+    ["girar90", "espelhar", "linhasTecnicas"].forEach(function (k) { if (e[k] !== undefined) perfil[k] = e[k] === true || e[k] === "true"; });
+    if (perfil.larguraUtil - 2 * perfil.margemLateral <= 0) return { ok: false, erro: "Largura útil menor que as margens" };
+    return { ok: true, perfil: perfil };
+  }
+  function lerPerfil(storage) {
+    try {
+      var salvo = JSON.parse((storage && storage.getItem(CHAVE_PERFIL)) || "null");
+      var r = validarPerfil(Object.assign({}, PERFIL_PADRAO, salvo || {}));
+      return r.ok ? r.perfil : Object.assign({}, PERFIL_PADRAO);
+    } catch (e) { return Object.assign({}, PERFIL_PADRAO); }
+  }
+  function salvarPerfil(storage, entrada) {
+    var r = validarPerfil(Object.assign({}, lerPerfil(storage), entrada));
+    if (!r.ok) return r;
+    try { storage.setItem(CHAVE_PERFIL, JSON.stringify(r.perfil)); } catch (e) { return { ok: false, erro: "Não foi possível salvar o perfil neste navegador" }; }
+    return r;
+  }
+
   var JPPacoteImpressao = {
     PERFIL_PADRAO: PERFIL_PADRAO, podeExportar: podeExportar, copias: copias, encaixar: encaixar,
-    gerarPacote: gerarPacote
+    gerarPacote: gerarPacote, validarPerfil: validarPerfil, lerPerfil: lerPerfil, salvarPerfil: salvarPerfil
   };
   raiz.JPPacoteImpressao = JPPacoteImpressao;
   if (typeof module !== "undefined" && module.exports) module.exports = JPPacoteImpressao;

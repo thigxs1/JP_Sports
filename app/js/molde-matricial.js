@@ -80,7 +80,12 @@
       if (nome || hex) cores.push({ rotulo: ROTULOS_COR[k], nome: nome, hex: hex });
     });
 
+    var atletas = (Array.isArray(p.atletas) ? p.atletas : []).filter(function (a) { return objeto(a) === a; }).map(function (a) {
+      return { nome: limpo(a.nome), numero: limpo(a.numero), tamanho: limpo(a.tamanho) };
+    });
+
     return {
+      atletas: atletas,
       id: limpo(p.id) || "-", time: limpo(p.time) || "-", cidade: limpo(p.cidade) || "-",
       responsavel: limpo(p.responsavel) || "-", basquete: basquete,
       modalidade: rotulo(MODALIDADES, modalidade) || "-",
@@ -358,8 +363,45 @@
     return esq.map(function (t, i) { return preencher(t, 40) + dir[i]; });
   }
 
-  function linhasFicha(d) {
-    var m = d.medidas, L = [];
+  function cmBR(mm) { return (Math.round(mm) / 10).toFixed(1).replace(".", ","); }
+  /* Peças reais do molde (Audaces) para cada tamanho do pedido. */
+  function pecasDoMolde(d, moldes) {
+    var L = ["PECAS DO MOLDE (LARGURA x ALTURA, COM MARGEM DE COSTURA)"];
+    d.grade.filter(function (g) { return g.qtd > 0; }).forEach(function (g) {
+      var m = moldes[g.tamanho];
+      if (!m) { L.push(g.tamanho + ": sem molde cadastrado (usar medidas de referencia e confirmar)"); return; }
+      var vistas = {};
+      var itens = m.pecas.filter(function (p) {
+        var chave = p.id.indexOf("manga") === 0 ? "manga" : p.id;
+        if (vistas[chave]) return false;
+        vistas[chave] = true;
+        return true;
+      }).map(function (p) {
+        var nome = p.id.indexOf("manga") === 0 ? "Manga (2x)" : ascii(p.nome);
+        return nome + ": " + cmBR(p.largura) + " x " + cmBR(p.altura) + " cm";
+      });
+      L = L.concat(quebrar(g.tamanho + "  " + itens.join(" | "), COLUNAS));
+    });
+    return L;
+  }
+  function atletasAscii(d) {
+    var L = ["ATLETAS (" + d.atletas.length + ")"];
+    TAMANHOS.concat(d.atletas.map(function (a) { return a.tamanho; }).filter(function (t, i, arr) {
+      return TAMANHOS.indexOf(t) < 0 && arr.indexOf(t) === i;
+    })).forEach(function (t) {
+      var doTam = d.atletas.filter(function (a) { return a.tamanho === t; });
+      if (!doTam.length) return;
+      var nomes = doTam.map(function (a) { return ascii([a.numero, a.nome].filter(Boolean).join(" ")) || "-"; });
+      var prefixo = ascii(t) + " (" + doTam.length + "): ";
+      quebrar(nomes.join(" | "), COLUNAS - prefixo.length).forEach(function (l, i) {
+        L.push((i ? repetir(" ", prefixo.length) : prefixo) + l);
+      });
+    });
+    return L;
+  }
+
+  function linhasFicha(d, opcoes) {
+    var m = d.medidas, L = [], moldes = (opcoes && opcoes.moldes) || null;
     var dupla = repetir("=", COLUNAS), simples = repetir("-", COLUNAS);
     function add(x) { L = L.concat(x); }
 
@@ -396,18 +438,23 @@
     add([simples, "GRADE DE CORTE", borda, celulas(TAMANHOS.concat(["TOTAL"])), borda]);
     add([celulas(d.grade.map(function (g) { return g.qtd; }).concat([d.total])), borda]);
     if (d.alertaTotal) add(quebrar(ascii(d.alertaTotal), COLUNAS));
+    if (moldes) add([simples].concat(pecasDoMolde(d, moldes)));
+    if (d.atletas.length) add([simples].concat(atletasAscii(d)));
     add(["", "Corte: ____________________  Costura: ___________________  Data: ___/___/_____"]);
     return L.map(function (l) { return l.replace(/ +$/, "").slice(0, COLUNAS); });
   }
 
-  /* opcoes.comComandosESCP (padrão true) · opcoes.condensado (padrão false, 10 CPI). */
+  /* opcoes.comComandosESCP (padrão true) · opcoes.condensado (padrão false, 10 CPI) · opcoes.moldes. */
   function gerarArquivoMatricialESCP(pedido, opcoes) {
     var o = opcoes || {};
-    var texto = linhasFicha(normalizar(pedido)).join("\r\n");
+    var texto = linhasFicha(normalizar(pedido), o).join("\r\n");
     if (o.comComandosESCP === false) return texto + "\r\n";
     return "\x1B@" + "\x1B\x32" + (o.condensado ? "\x0F" : "\x12") + texto + "\r\n\f";
   }
-  function gerarTextoPuro(pedido) { return gerarArquivoMatricialESCP(pedido, { comComandosESCP: false }); }
+  /* opcoes.moldes: { P: Molde, M: Molde, ... } para o quadro de peças reais. */
+  function gerarTextoPuro(pedido, opcoes) {
+    return gerarArquivoMatricialESCP(pedido, Object.assign({}, opcoes, { comComandosESCP: false }));
+  }
 
   /* ---------- Navegador: impressão e download ---------- */
   function imprimirMolde(pedido) {
