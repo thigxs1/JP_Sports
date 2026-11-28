@@ -79,6 +79,21 @@ window.JP_DB = (function () {
           }
         },
         {
+          id: "local-pedido-3", criado_em: t, time: "Estrela do Norte", cidade: "Goiânia",
+          responsavel: "Responsável Exemplo 3", modalidade: "futebol", kit_completo: false,
+          grade: { P: 0, M: 2, G: 1, GG: 0, XG: 0, Infantil: 0 }, total_pecas: 3,
+          estimativa: null, prazo: null, observacoes: "Pedido de exemplo com lista de atletas.", status: "novo",
+          projeto_3d: {
+            modalidade: "futebol", gola: "redonda", estampa: "rajado", numero: "10", nome: "ESTRELA", fonte: "Montserrat",
+            patrocinio: "JP SPORT",
+            cores: { cor1: { nome: "Navy JP", hex: "#0F1F3D" }, cor2: { nome: "Elétrico JP", hex: "#2F5BFF" }, cor3: { nome: "Branco", hex: "#FFFFFF" }, cor4: { nome: "Branco", hex: "#FFFFFF" }, cor5: { nome: "Branco", hex: "#FFFFFF" } }
+          },
+          atletas: [
+            { nome: "SILVA", numero: "7", tamanho: "M" }, { nome: "JOÃO", numero: "10", tamanho: "M" },
+            { nome: "LIMA", numero: "9", tamanho: "G" }
+          ]
+        },
+        {
           id: "local-pedido-2", criado_em: t, time: "Falcões Basquete", cidade: "Santos",
           responsavel: "Responsável Exemplo 2", modalidade: "basquete", kit_completo: false,
           grade: { P: 0, M: 4, G: 5, GG: 3, XG: 0, Infantil: 0 }, total_pecas: 12,

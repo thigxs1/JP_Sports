@@ -28,6 +28,12 @@ teste('schema.sql: status, tabelas, funções e RLS', () => {
   });
   assert.match(sql, /create policy "admin gerencia perfis" on public\.perfis\s+for all to authenticated\s+using \(public\.is_admin_global\(\)\) with check \(public\.is_admin_global\(\)\)/i);
 });
+teste('schema.sql: coluna atletas com limite de 200', () => {
+  const sql = ler('docs/supabase/schema.sql');
+  assert.match(sql, /alter table public\.orcamentos add column if not exists atletas jsonb/i);
+  assert.match(sql, /drop constraint if exists orcamentos_atletas_check/i);
+  assert.match(sql, /add constraint orcamentos_atletas_check check \(atletas is null or \(jsonb_typeof\(atletas\) = 'array' and jsonb_array_length\(atletas\) <= 200\)\)/i);
+});
 teste('index.html: feed de promoções e link do painel', () => {
   const html = ler('app/index.html');
   assert.match(html, /<section[^>]*\sid="promocoes"/);
