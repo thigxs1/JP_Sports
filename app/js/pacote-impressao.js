@@ -217,6 +217,23 @@
     };
   }
 
+  /* Ficha técnica em PDF A4: o mesmo texto de 80 colunas do .txt, em fonte mono. */
+  async function fichaPDF(textoFicha, deps) {
+    var doc = new deps.jsPDF({ unit: "mm", format: "a4", orientation: "portrait", compress: true });
+    await Fontes.registrarFontes(doc, deps.carregarTTF);
+    doc.setFont(Fontes.nomeInterno("JetBrains Mono", "500"), "normal");
+    doc.setFontSize(9.5); // 80 colunas ≈ 183 mm de largura
+    doc.setTextColor(0, 0, 0);
+    var linhas = textoFicha.replace(/\r/g, "").replace(/\n+$/, "").split("\n");
+    var topo = 15, passo = 4.1, porPagina = Math.floor((297 - 2 * topo) / passo), paginas = 0;
+    for (var i = 0; i < linhas.length; i += porPagina) {
+      if (i) doc.addPage("a4", "portrait");
+      paginas++;
+      linhas.slice(i, i + porPagina).forEach(function (l, j) { if (l) doc.text(l, 13, topo + j * passo, { baseline: "top" }); });
+    }
+    return { bytes: new Uint8Array(doc.output("arraybuffer")), paginas: paginas };
+  }
+
   /* deps: { moldes: {P: Molde, ...}, indice, perfil, jsPDF, JSZip, carregarTTF, previaPNG? } */
   async function gerarPacote(pedido, deps) {
     var pode = podeExportar(pedido, deps.indice);
@@ -266,7 +283,11 @@
       manifesto.unificado = { arquivo: arqUni, pranchas: uni.pranchas, pecas: uni.pecas };
       if (deps.previaPNG) zip.file("previa-" + id + ".png", await deps.previaPNG(uni));
     }
-    zip.file("ficha-" + id + ".txt", Ficha.gerarTextoPuro(pedido, { moldes: deps.moldes }));
+    var textoFicha = Ficha.gerarTextoPuro(pedido, { moldes: deps.moldes });
+    zip.file("ficha-" + id + ".txt", textoFicha);
+    var fpdf = await fichaPDF(textoFicha, deps);
+    zip.file("ficha-" + id + ".pdf", fpdf.bytes);
+    manifesto.ficha = { txt: "ficha-" + id + ".txt", prn: "ficha-" + id + ".prn", pdf: "ficha-" + id + ".pdf", paginas: fpdf.paginas };
     zip.file("ficha-" + id + ".prn", Ficha.gerarArquivoMatricialESCP(pedido, { moldes: deps.moldes }));
     zip.file("manifesto-" + id + ".json", JSON.stringify(manifesto, null, 2));
     return { zip: await zip.generateAsync({ type: "uint8array" }), manifesto: manifesto, avisos: avisos };

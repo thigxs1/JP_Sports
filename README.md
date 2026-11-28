@@ -51,7 +51,7 @@ npm run blender:fotos   # renderiza app/assets/produtos/*.png
 
 ## Pacote de impressão (sublimação)
 No painel (`app/operacao.html`), cada pedido de futebol com gola careca tem **Baixar pacote de impressão**: um `.zip` com
-ficha técnica (`.txt`/`.prn`), um PDF 1:1 por tamanho, um PDF unificado encaixado na largura útil da plotter, o manifesto JSON
+ficha técnica (`.pdf` A4, `.txt` e `.prn` para matricial), um PDF 1:1 por tamanho, um PDF unificado encaixado na largura útil da plotter, o manifesto JSON
 e uma prévia PNG. Cada atleta da lista do orçamento gera um jogo de peças com o próprio nome e número.
 
 - Moldes do Audaces em `app/moldes/<modelo>/<tamanho>.json` (os `.plt` originais ficam em `fonte/`). Para um molde novo:

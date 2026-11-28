@@ -199,6 +199,19 @@ teste('revisão: escudo que não é data:image png/jpeg é ignorado com aviso', 
   assert.strictEqual(pacote.escudoValido('data:image/png;base64,' + 'A'.repeat(4000000)), false, 'limite de tamanho');
 });
 
+teste('ficha técnica também em PDF (A4, fonte mono, todas as linhas)', async () => {
+  const r = await gerar(pedido());
+  const z = await JSZip.loadAsync(r.zip);
+  assert.ok(z.file('ficha-42.pdf'), 'ficha-42.pdf no zip');
+  const bytes = await z.file('ficha-42.pdf').async('uint8array');
+  const txt = Buffer.from(bytes).toString('latin1');
+  const caixas = mediaBoxes(txt);
+  assert.ok(caixas.length >= 1 && caixas.every(([w, h]) => w === 210 && h === 297), 'A4: ' + JSON.stringify(caixas));
+  assert.ok(/JPJetBrainsMonoMedium/.test(txt), 'fonte mono incorporada');
+  assert.strictEqual(r.manifesto.ficha.pdf, 'ficha-42.pdf');
+  assert.strictEqual(r.manifesto.ficha.paginas, caixas.length);
+});
+
 (async () => {
   for (const [nome, fn] of testes) {
     try { await fn(); console.log('PASS: ' + nome); } catch (e) { falhas++; console.error('FAIL: ' + nome + '\n      ' + ((e && e.stack) || e)); }
