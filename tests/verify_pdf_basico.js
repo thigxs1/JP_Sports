@@ -52,7 +52,7 @@ teste('Montserrat incorporada como TrueType', async () => {
   const { texto } = await pdfDeProva();
   assert.ok(/\/FontFile2/.test(texto), 'FontFile2');
   assert.ok(/JPMontserratBlack/.test(texto), 'nome da fonte registrada');
-  assert.ok(//Fd+ 113 Tf/.test(texto), 'texto de 40 mm = 113 pt');
+  assert.ok(/\/F\d+ 113 Tf/.test(texto), 'texto de 40 mm = 113 pt');
 });
 
 teste('recorte e transparência', async () => {
