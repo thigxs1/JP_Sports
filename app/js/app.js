@@ -128,6 +128,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   await loadSVGTemplate();
   await loadPBRMaps();
   await load3DModel();
+  await carregarMoldeBase();
 
   // modalidade vinda da Home/Coleção (?modalidade=basquete)
   const pedida = new URLSearchParams(location.search).get("modalidade");
@@ -747,7 +748,7 @@ function updateDynamicTexture() {
 
   if (estadoSimulador.estampa === "rajado") {
     drawRajadoPattern(textureCtx);
-    drawPlayerDetails();
+    desenharDetalhes();
     refreshShirtTexture();
     return;
   }
@@ -771,7 +772,7 @@ function updateDynamicTexture() {
     img.onload = () => {
       textureCtx.drawImage(img, 0, 0, 2048, 2048);
       URL.revokeObjectURL(url);
-      drawPlayerDetails();
+      desenharDetalhes();
       refreshShirtTexture();
     };
     img.src = url;
@@ -795,8 +796,64 @@ function updateDynamicTexture() {
   textureCtx.fillRect(680, 410, 690, 175);
   textureCtx.fillRect(750, 330, 540, 75);
 
-  drawPlayerDetails();
+  desenharDetalhes();
   refreshShirtTexture();
+}
+
+/* =========================================================================
+   ARTE PELO MOLDE: no futebol (camiseta básica), escudo, marca, patrocínio, nome e
+   número saem do layout em cm (js/arte-pecas.js), o mesmo que vai para o PDF de
+   impressão; a calibração leva mm do molde M para px desta textura.
+   ========================================================================= */
+let moldeBase = null;
+let calibracaoUV = null;
+const afinsUV = {};
+
+async function carregarMoldeBase() {
+  if (!window.JPArtePecas) return;
+  try {
+    const [m, c] = await Promise.all([
+      fetch("moldes/camiseta-basica/M.json").then((r) => r.json()),
+      fetch("moldes/camiseta-basica/calibracao.json").then((r) => r.json())
+    ]);
+    moldeBase = m;
+    calibracaoUV = c;
+    Object.keys(c.pecas).forEach((id) => { afinsUV[id] = JPArtePecas.afimDePares(c.pecas[id].pares); });
+  } catch (e) {
+    console.warn("[simulador] molde não carregado (file:// ou rede); usando a arte fixa:", e);
+  }
+  updateAllTextures();
+}
+
+function projetoAtual() {
+  return {
+    estampa: estadoSimulador.estampa, cores: estadoSimulador.cores, nome: estadoSimulador.nome,
+    numero: estadoSimulador.numero, patrocinio: estadoSimulador.patrocinio, fonte: estadoSimulador.fonte,
+    layout: estadoSimulador.layout || null
+  };
+}
+
+function usaArteDoMolde() {
+  return estadoSimulador.modalidade === "futebol" && !!moldeBase && !!calibracaoUV;
+}
+
+function desenharDetalhes() {
+  if (!usaArteDoMolde()) { drawPlayerDetails(); return; }
+  // botões do peitilho da Gola Polo (UV fixa no canto, área sem uso no molde)
+  textureCtx.fillStyle = "#2B2F33";
+  textureCtx.fillRect(0, 0, 40, 40);
+  const projeto = projetoAtual();
+  Object.keys(afinsUV).forEach((id) => {
+    const peca = moldeBase.pecas.find((p) => p.id === id);
+    if (!peca) return;
+    textureCtx.save();
+    textureCtx.transform(...afinsUV[id]);
+    JPArtePecas.desenharPeca(textureCtx, peca, projeto, null, {
+      sangria: calibracaoUV.pecas[id].sangria3d || 30, previa: true, escudo: estadoSimulador.escudoImg,
+      semFundo: estadoSimulador.estampa === "colors" // o template Colors já pintou o fundo na textura
+    });
+    textureCtx.restore();
+  });
 }
 
 function drawPlayerDetails() {

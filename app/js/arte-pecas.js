@@ -8,16 +8,16 @@
 
   var ELEMENTOS = ["marca", "escudo", "patrocinio", "nome", "numero"];
 
-  /* Padrão derivado das posições fixas do 3D (drawPlayerDetails em app.js), convertidas
-     de px da textura 2048 para cm com ~0,72 mm/px na frente e ~0,52 mm/px nas costas.
-     A Task 5 confere o resultado no 3D. */
+  /* Padrão = posições do 3D antigo (drawPlayerDetails em app.js) convertidas para cm com a
+     calibração de app/moldes/camiseta-basica/calibracao.json (molde M). Tamanhos ajustados
+     ao real: escudo de 9 cm (o 3D desenhava ~15 cm) e número com ~17 cm de altura, como no 3D. */
   var PADRAO = {
     "camiseta-basica": [
-      { id: "marca", peca: "frente", ancora: "decote", dx: -9, dy: 9, largura: 6 },
-      { id: "escudo", peca: "frente", ancora: "decote", dx: 9, dy: 9, largura: 9 },
-      { id: "patrocinio", peca: "frente", ancora: "decote", dx: 0, dy: 23, largura: 30 },
-      { id: "nome", peca: "costas", ancora: "decote", dx: 0, dy: 12, largura: 23 },
-      { id: "numero", peca: "costas", ancora: "decote", dx: 0, dy: 25, largura: 22 }
+      { id: "marca", peca: "frente", ancora: "decote", dx: -12, dy: 8, largura: 6 },
+      { id: "escudo", peca: "frente", ancora: "decote", dx: 12, dy: 8, largura: 9 },
+      { id: "patrocinio", peca: "frente", ancora: "decote", dx: 0, dy: 22, largura: 30 },
+      { id: "nome", peca: "costas", ancora: "decote", dx: 0, dy: 14, largura: 28 },
+      { id: "numero", peca: "costas", ancora: "decote", dx: 0, dy: 30, largura: 28 }
     ]
   };
   /* Altura do texto como fração da largura do elemento (mesmas proporções do 3D). */
@@ -249,7 +249,7 @@
     ctx.closePath();
   }
 
-  /* Desenha a peça inteira no ctx (já em mm). opcoes: { sangria, fontes(fam, peso, px), alfa(a), escalaMedida,
+  /* Desenha a peça inteira no ctx (já em mm). opcoes: { sangria, fontes(fam, peso, px), alfa(a), escalaMedida, semFundo,
      suporta(ch), escudo (imagem para drawImage), previa (bool), layout (sobrepõe o do projeto) } */
   function desenharPeca(ctx, peca, projeto, atleta, opcoes) {
     var o = opcoes || {}, p = projeto || {}, avisos = [];
@@ -263,7 +263,7 @@
     caminho(ctx, expandirContorno(peca.contorno, sangria));
     ctx.clip();
     var alfa = o.alfa || function (a) { ctx.globalAlpha = a; };
-    avisos = avisos.concat(fundo(ctx, peca, p, caixa, alfa));
+    if (!o.semFundo) avisos = avisos.concat(fundo(ctx, peca, p, caixa, alfa));
 
     var layout = normalizarLayout(o.layout || p.layout, (p.layout && p.layout.modelo) || "camiseta-basica");
     var familia = Object.prototype.hasOwnProperty.call(PESOS_CAMISA, p.fonte) ? p.fonte : "Montserrat";
@@ -300,7 +300,42 @@
     return { avisos: avisos };
   }
 
+  /* ---------- Calibração mm da peça → px da textura do 3D ---------- */
+  /* Resolve u = a·x + b·y + c e v = d·x + e·y + f por mínimos quadrados (3 pares: exato).
+     Devolve [a, b, d, e, c, f], na ordem de ctx.setTransform/transform. */
+  function afimDePares(pares) {
+    var M = [[0, 0, 0], [0, 0, 0], [0, 0, 0]], bu = [0, 0, 0], bv = [0, 0, 0];
+    pares.forEach(function (par) {
+      var r = [par[0][0], par[0][1], 1];
+      for (var i = 0; i < 3; i++) {
+        for (var j = 0; j < 3; j++) M[i][j] += r[i] * r[j];
+        bu[i] += r[i] * par[1][0];
+        bv[i] += r[i] * par[1][1];
+      }
+    });
+    function resolver(A, b) { // Cramer 3×3
+      function det(m) {
+        return m[0][0] * (m[1][1] * m[2][2] - m[1][2] * m[2][1]) - m[0][1] * (m[1][0] * m[2][2] - m[1][2] * m[2][0]) +
+          m[0][2] * (m[1][0] * m[2][1] - m[1][1] * m[2][0]);
+      }
+      var D = det(A);
+      if (Math.abs(D) < 1e-12) throw new Error("Pares de calibração colineares");
+      return [0, 1, 2].map(function (k) {
+        return det(A.map(function (linha, i) { return linha.map(function (v, j) { return j === k ? b[i] : v; }); })) / D;
+      });
+    }
+    var u = resolver(M, bu), v = resolver(M, bv);
+    return [u[0], v[0], u[1], v[1], u[2], v[2]];
+  }
+  function aplicarAfim(m, p) { return [m[0] * p[0] + m[2] * p[1] + m[4], m[1] * p[0] + m[3] * p[1] + m[5]]; }
+  function inverterAfim(m) {
+    var det = m[0] * m[3] - m[2] * m[1];
+    return [m[3] / det, -m[1] / det, -m[2] / det, m[0] / det,
+      (m[2] * m[5] - m[3] * m[4]) / det, (m[1] * m[4] - m[0] * m[5]) / det];
+  }
+
   var JPArtePecas = {
+    afimDePares: afimDePares, aplicarAfim: aplicarAfim, inverterAfim: inverterAfim,
     ELEMENTOS: ELEMENTOS, layoutPadrao: layoutPadrao, normalizarLayout: normalizarLayout,
     posicao: posicao, alturaElemento: alturaElemento, foraDaAreaSegura: foraDaAreaSegura,
     expandirContorno: expandirContorno, limparTexto: limparTexto, desenharPeca: desenharPeca,

@@ -122,6 +122,12 @@ teste('rajado é determinístico', () => {
   assert.ok(desenhar(p, pr).chamadas.filter((c) => c.fn === 'fill').length > 50);
 });
 
+teste('semFundo: só os elementos, sem pintar a estampa', () => {
+  const { chamadas } = desenhar(peca('M', 'costas'), null, null, { semFundo: true });
+  assert.strictEqual(chamadas.filter((c) => c.fn === 'fillRect').length, 0);
+  assert.ok(textos(chamadas).some((c) => c.args[0] === '10'));
+});
+
 teste('ribana sai na cor 3, sem textos', () => {
   const { chamadas } = desenhar(peca('M', 'ribana'));
   assert.strictEqual(chamadas.find((c) => c.fn === 'fillRect').fillStyle, '#FFFFFF');
@@ -142,6 +148,24 @@ teste('nome que não cabe encolhe e avisa', () => {
   const esc = ctx.chamadas.find((c) => c.fn === 'scale');
   assert.ok(esc && esc.args[0] < 1 && esc.args[1] === 1, 'comprimido só na horizontal');
   assert.ok(r.avisos.some((a) => /não cabe/.test(a)));
+});
+
+teste('afimDePares reproduz 3 pares exatos e ajusta 4 por mínimos quadrados', () => {
+  const m = arte().afimDePares([[[0, 0], [10, 20]], [[100, 0], [210, 20]], [[0, 50], [10, 120]]]);
+  [[0, 0, 10, 20], [100, 0, 210, 20], [0, 50, 10, 120], [50, 25, 110, 70]].forEach(([x, y, u, v]) => {
+    const r = arte().aplicarAfim(m, [x, y]);
+    assert.ok(Math.abs(r[0] - u) < 0.01 && Math.abs(r[1] - v) < 0.01, JSON.stringify(r));
+  });
+  const q = arte().afimDePares([[[0, 0], [0, 0]], [[10, 0], [20, 0]], [[0, 10], [0, 30]], [[10, 10], [20, 30]]]);
+  assert.deepStrictEqual(arte().aplicarAfim(q, [5, 5]).map((x) => +x.toFixed(3)), [10, 15]);
+});
+
+teste('calibração real: decote de frente e costas do M cai na ilha de UV certa', () => {
+  const cal = require(path.join(RAIZ, 'app', 'moldes', 'camiseta-basica', 'calibracao.json'));
+  const dentro = (p, [u0, u1, v0, v1]) => p[0] >= u0 && p[0] <= u1 && p[1] >= v0 && p[1] <= v1;
+  const fr = peca('M', 'frente'), co = peca('M', 'costas');
+  assert.ok(dentro(arte().aplicarAfim(arte().afimDePares(cal.pecas.frente.pares), fr.pontos.decote), [1259, 1972, 860, 1987]), 'frente');
+  assert.ok(dentro(arte().aplicarAfim(arte().afimDePares(cal.pecas.costas.pares), co.pontos.decote), [131, 1054, 663, 1923]), 'costas');
 });
 
 (async () => {
