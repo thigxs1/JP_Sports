@@ -201,8 +201,20 @@ window.JP_DB = (function () {
     }
     var c = sb();
     if (c) {
-      var r = await consultar(function () { return c.from(tabela).insert(dados); });
+      var envio = Object.assign({}, dados);
+      if (envio.atletas === null || envio.atletas === undefined) delete envio.atletas;
+      var r = await consultar(function () { return c.from(tabela).insert(envio); });
       if (!r.error) return { ok: true, modo: "supabase" };
+      // banco ainda sem a coluna "atletas" (schema.sql não rodado): grava o pedido sem a lista
+      if ("atletas" in envio && /atletas/.test(r.error.message || "") && (r.error.code === "PGRST204" || r.error.code === "42703")) {
+        delete envio.atletas;
+        var r2 = await consultar(function () { return c.from(tabela).insert(envio); });
+        if (!r2.error) {
+          console.warn("[JP_DB] coluna atletas ausente; pedido gravado sem a lista. Rode docs/supabase/schema.sql.");
+          return { ok: true, modo: "supabase", aviso: "Pedido salvo sem a lista de atletas (coluna atletas ausente no banco)" };
+        }
+        r = r2;
+      }
       erro = r.error.message;
       console.warn("[JP_DB]", tabela, erro);
     }

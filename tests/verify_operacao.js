@@ -291,6 +291,47 @@ teste('usuários: sair limpa a aba e descarta listagem em trânsito', async () =
   assert.ok(!p.el('usuario-lista').innerHTML.includes('Vazou'));
 });
 
+/* ---------- JP_DB.salvar com Supabase sem a coluna atletas ---------- */
+function dbComSupabaseFalso(semColuna) {
+  const inserts = [];
+  const cliente = {
+    auth: { getSession: async () => ({ data: { session: null } }) },
+    from: () => ({
+      insert: async (dados) => {
+        inserts.push(JSON.parse(JSON.stringify(dados)));
+        if (semColuna && Object.prototype.hasOwnProperty.call(dados, 'atletas')) {
+          return { error: { code: 'PGRST204', message: "Could not find the 'atletas' column of 'orcamentos' in the schema cache" } };
+        }
+        return { error: null };
+      }
+    })
+  };
+  const armazem = {};
+  const window = {
+    localStorage: { getItem: (k) => (k in armazem ? armazem[k] : null), setItem(k, v) { armazem[k] = String(v); } },
+    supabase: { createClient: () => cliente }
+  };
+  const ctx = vm.createContext({ window, console: { warn() {}, log() {}, error() {} } });
+  vm.runInContext(ler('app/assets/supabase-config.js'), ctx);
+  return { db: window.JP_DB, inserts };
+}
+const ORC = { time: 'T', responsavel: 'R', modalidade: 'futebol', kit_completo: false, grade: { M: 1 }, total_pecas: 1 };
+teste('salvar: sem lista de atletas não envia o campo', async () => {
+  const { db, inserts } = dbComSupabaseFalso(true);
+  const r = await db.salvar('orcamentos', Object.assign({}, ORC, { atletas: null }));
+  assert.strictEqual(r.modo, 'supabase');
+  assert.ok(!('atletas' in inserts[0]));
+});
+teste('salvar: banco sem a coluna atletas grava o pedido sem a lista e avisa', async () => {
+  const { db, inserts } = dbComSupabaseFalso(true);
+  const r = await db.salvar('orcamentos', Object.assign({}, ORC, { atletas: [{ nome: 'A', numero: '1', tamanho: 'M' }] }));
+  assert.strictEqual(r.ok, true);
+  assert.strictEqual(r.modo, 'supabase');
+  assert.match(r.aviso, /atletas/);
+  assert.strictEqual(inserts.length, 2);
+  assert.ok(!('atletas' in inserts[1]));
+});
+
 /* ---------- Pacote de impressão no painel ---------- */
 const pacoteMod = () => require('../app/js/pacote-impressao.js');
 teste('pedidos: botão do pacote para gola redonda, aviso para gola V', async () => {
