@@ -119,6 +119,16 @@ Primeiro admin: criar em Authentication › Users e inserir em `perfis` (comando
 - PR #1 Playbook, ícones, Supabase e Vercel · PR #2 polimento do simulador e cards · PR #3 textos sempre cabem na camisa · PR #4 hover dos cards · PR #5 rebranding 2026 · **PR #6 painel de operação, molde técnico e feed de promoções**.
 - Testes passando: `npm test` (2/2) e `verify_operacao.js` (35/35).
 
+### Feito na branch `feat/pacote-impressao` (ainda sem PR)
+- **Pacote de impressão para sublimação** (spec `docs/superpowers/specs/2026-11-28-pacote-impressao-sublimacao-design.md`, plano em `docs/superpowers/plans/`):
+  - moldes do Audaces (camiseta básica P/M/G) em `app/moldes/`, importados por `scripts/importar_molde_plt.js`;
+  - arte por peça em mm (`app/js/arte-pecas.js`), usada pelo 3D e pelo PDF; calibração em `app/moldes/camiseta-basica/calibracao.json`;
+  - posicionamento livre no simulador (`app/js/editor-posicao.js`), escudo salvo no projeto;
+  - lista de atletas no orçamento (`app/js/atletas.js`, coluna `orcamentos.atletas`);
+  - painel: "Baixar pacote de impressão" (`app/js/pacote-impressao.js`): ficha, PDF 1:1 por tamanho, unificado, manifesto e prévia; perfil da plotter.
+- `npm test` roda os 9 arquivos de teste (inclui `verify_operacao.js`).
+- Precisa rodar o `schema.sql` atualizado no Supabase (coluna `atletas`).
+
 ### Em aberto no git
 - Branch **`feat/linguagem-visual-referencias`** (worktree `.claude/worktrees/linguagem-visual`): 13 commits que **não estão em `main` nem no remoto** (base escura, ícones de traço, cor dentro do ícone de camisa, hero escuro, cards da coleção). Decidir: rebase sobre `main` + PR, ou descartar.
 - `main` local está 8 commits atrás de `origin/main` → `git pull` antes de criar branch.
@@ -130,18 +140,23 @@ Primeiro admin: criar em Authentication › Users e inserir em `perfis` (comando
 - Malha base da camisa deriva de modelo de terceiros: remodelar antes do uso comercial (ver auditoria).
 
 ### Pontos de atenção encontrados na leitura
-1. `npm test` **não roda** `tests/verify_operacao.js` → incluir no script `test` do `package.json`.
+1. ~~`npm test` não roda `tests/verify_operacao.js`~~ (resolvido na branch `feat/pacote-impressao`).
 2. `orcamento.html` monta o resumo com `innerHTML` usando `projeto.cores.*.hex/nome`, `numero` e `nome` do `localStorage` sem escapar (risco baixo, dado do próprio navegador, mas fácil de corrigir).
 3. `orcamento.html` usa `?modalidade=` dentro de `querySelector(\`input[value="${pre}"]\`)`: um valor com aspas lança erro de seletor e quebra o script. Validar contra a lista de modalidades antes.
 4. `orcamentos` aceita insert anônimo com `with check (true)` e sem limite de tamanho → avaliar limites (`check (length(...))`), rate limit ou captcha contra spam.
 5. `operacao.html` carrega `@supabase/supabase-js@2.45.4` sem o caminho `dist/umd/supabase.min.js` usado nas outras telas; padronizar.
 6. Credenciais de demonstração (`admin@jpsport.com` / `operacao@jpsport.com`) estão no código do modo local; se essas contas forem criadas no Supabase, usar outras senhas.
 7. `criarUsuarioOperacao` depende de signUp liberado no Supabase (e da confirmação de e-mail); se estiver desligado, o usuário fica só local e o painel avisa.
+8. `tests/verify_simulator_integration.js` lê `app/js/embedded_assets.js`, que é gerado (`npm run build:embed`) e fica fora do git: num clone novo, rode o build antes do `npm test`.
+9. Pacote de impressão: estampa "Colors" sai lisa (cor 1) no PDF, com aviso; mangas calibradas só pela caixa da ilha de UV; sem escudo do cliente, a área fica vazia.
 
 ---
 
 ## 7. Próximos passos sugeridos
-- [ ] Incluir `verify_operacao.js` no `npm test`.
+- [x] Incluir `verify_operacao.js` no `npm test`.
+- [ ] Revisar e abrir o PR de `feat/pacote-impressao`; rodar o `schema.sql` no Supabase.
+- [ ] Testar um PDF do pacote no RIP e na plotter reais (quadrado de 100 mm, cores, espelhamento).
+- [ ] Exportar do Audaces os moldes que faltam (GG, XG, Infantil; gola V/polo; regata; vôlei; calção; meião) e importar com `npm run molde:importar`.
 - [ ] Corrigir os itens 2 e 3 do `orcamento.html`.
 - [ ] Decidir o destino da branch `feat/linguagem-visual-referencias`.
 - [ ] Rodar `schema.sql` atualizado no projeto Supabase e criar o primeiro `admin_global`.
@@ -154,3 +169,4 @@ Primeiro admin: criar em Authentication › Users e inserir em `perfis` (comando
 | Data | O que foi feito | Branch / PR |
 |---|---|---|
 | 2026-11-28 | Leitura completa do código e criação deste arquivo | `feat/painel-operacao` |
+| 2026-11-28 | Pacote de impressão para sublimação (moldes Audaces, arte por peça, posicionamento livre, atletas, painel) | `feat/pacote-impressao` |

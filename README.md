@@ -30,8 +30,9 @@ Importe o repositório na Vercel. O `vercel.json` publica a pasta `app/` como si
 Requer [Node.js](https://nodejs.org) 18+.
 
 ```bash
+npm install          # só para os testes (jsPDF e JSZip)
 npm start            # http://localhost:3000  (PORT=xxxx para outra porta)
-npm test             # verificações dos assets e da integração
+npm test             # todas as verificações (tests/verify_*.js)
 ```
 
 Para abrir sem servidor (`file://`), gere o pacote embutido antes:
@@ -47,6 +48,23 @@ npm run blender:fotos   # renderiza app/assets/produtos/*.png
 ```
 - `scripts/blender_refine_kit.py` — camisa, golas (V, redonda, polo), calção, meião, regata de basquete, camisa de vôlei.
 - `scripts/blender_render_produtos.py` — fotos de produto 4:5.
+
+## Pacote de impressão (sublimação)
+No painel (`app/operacao.html`), cada pedido de futebol com gola careca tem **Baixar pacote de impressão**: um `.zip` com
+ficha técnica (`.txt`/`.prn`), um PDF 1:1 por tamanho, um PDF unificado encaixado na largura útil da plotter, o manifesto JSON
+e uma prévia PNG. Cada atleta da lista do orçamento gera um jogo de peças com o próprio nome e número.
+
+- Moldes do Audaces em `app/moldes/<modelo>/<tamanho>.json` (os `.plt` originais ficam em `fonte/`). Para um molde novo:
+  ```bash
+  npm run molde:importar -- "CAMISETA BASICA GG.plt" camiseta-basica GG
+  ```
+  e acrescente o tamanho (ou o modelo) em `app/moldes/index.json`.
+- Arte por peça em mm: `app/js/arte-pecas.js` (o mesmo código pinta o 3D e o PDF). Layout padrão em cm, a partir do decote.
+- Calibração molde → textura do 3D: `app/moldes/camiseta-basica/calibracao.json` (pontos tirados com `node scripts/uv_ilhas.js Camisa_Corpo --pontos`).
+- Perfil da plotter (largura útil, margens, sangria, espelhamento): editado no painel e salvo no navegador.
+- Fontes do PDF: `app/assets/fontes/` (TTF, licença OFL). jsPDF e JSZip vêm por CDN; `npm install` instala as mesmas versões para os testes.
+- Só existe o molde da camiseta básica (P, M, G). Gola V/polo, basquete, vôlei, calção, meião e os tamanhos GG, XG e Infantil
+  aparecem como "molde não cadastrado".
 
 ## Configuração comercial
 `app/assets/jp-sport.js` → `JP_CONFIG` (número de WhatsApp e preços).
